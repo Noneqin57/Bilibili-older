@@ -73,7 +73,17 @@ class Player {
                 try {
                     const manifest = (<any>window).player?.getManifest();
                     debug('播放器实例已存在，可能脚本注入过慢！', manifest);
-                    manifest && this.createPlayer(manifest);
+                    if (manifest) {
+                        // bvid 可能在注入过慢时未就绪，从 URL 兜底补全
+                        if (!manifest.bvid || manifest.bvid === 'undefined') {
+                            const bvidMatch = location.pathname.match(/\/(BV[\w]+)/i);
+                            if (bvidMatch) {
+                                debug('从URL兜底补全bvid：', bvidMatch[1]);
+                                manifest.bvid = bvidMatch[1];
+                            }
+                        }
+                        this.createPlayer(manifest);
+                    }
                 } catch (e) {
                     debug('读取播放器启动参数失败！', e);
                 }
@@ -129,7 +139,7 @@ class Player {
     /** 旧版播放器已启用 */
     private isEmbedPlayer = false;
     /** 旧版播放器正常引导 */
-    protected EmbedPlayer(loadPlayer: Function, isEmbedPlayer = true) {
+    protected async EmbedPlayer(loadPlayer: Function, isEmbedPlayer = true) {
         this.nanoPermit = () => { } // 禁止放行新版播放器
         // this.loading = false; // 脚本初始化完成
         this.isEmbedPlayer = isEmbedPlayer; // 旧版播放器正常引导
@@ -138,8 +148,16 @@ class Player {
         if ((<any>window).player?.disconnect) {
             try {
                 debug('爆破新版播放器!');
-                (<any>window).player.disconnect();
+                // await 等待 disconnect 的 Promise 完成，避免新版播放器还未销毁就开始挂载旧版
+                await (<any>window).player.disconnect();
                 this.nanoPlayer || (this.nanoPlayer = (<any>window).player);
+                // disconnect 完成后清空容器，防止新版残留 DOM 干扰旧版播放器挂载
+                const container = document.getElementById('bilibili-player')
+                    || document.getElementById('bofqi');
+                if (container) {
+                    debug('清空播放器容器，准备挂载旧版播放器');
+                    container.innerHTML = '';
+                }
             } catch { }
         }
         this.switchVideo();

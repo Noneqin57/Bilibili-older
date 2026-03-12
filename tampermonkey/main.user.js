@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili 旧播放页
 // @namespace    MotooriKashin
-// @version      10.8.8-a31dc13f64b0b5a3afd202adb18cdd8cdd0dcc36
+// @version      10.8.9-a31dc13f64b0b5a3afd202adb18cdd8cdd0dcc36
 // @description  恢复Bilibili旧版页面，为了那些念旧的人。
 // @author       MotooriKashin, wly5556
 // @homepage     https://github.com/MotooriKashin/Bilibili-Old
@@ -16,6 +16,7 @@
 // @grant        GM.cookie
 // @grant        GM.registerMenuCommand
 // @run-at       document-start
+// @inject-into  page
 // @license      MIT
 // ==/UserScript==
 
@@ -1072,7 +1073,7 @@ const MODULES = `
           return typeof value !== "object" || (Array.isArray(value) ? value.length : Object.keys(value).length) > 0;
         return false;
       };
-      util.Buffer = function() {
+      util.Buffer = (function() {
         try {
           var Buffer2 = util.inquire("buffer").Buffer;
           return Buffer2.prototype.utf8Write ? Buffer2 : (
@@ -1082,7 +1083,7 @@ const MODULES = `
         } catch (e) {
           return null;
         }
-      }();
+      })();
       util._Buffer_from = null;
       util._Buffer_allocUnsafe = null;
       util.newBuffer = function newBuffer(sizeOrArray) {
@@ -1482,7 +1483,7 @@ const MODULES = `
       Reader2.create = create();
       Reader2.prototype._slice = util.Array.prototype.subarray || /* istanbul ignore next */
       util.Array.prototype.slice;
-      Reader2.prototype.uint32 = /* @__PURE__ */ function read_uint32_setup() {
+      Reader2.prototype.uint32 = /* @__PURE__ */ (function read_uint32_setup() {
         var value = 4294967295;
         return function read_uint32() {
           value = (this.buf[this.pos] & 127) >>> 0;
@@ -1501,7 +1502,7 @@ const MODULES = `
           }
           return value;
         };
-      }();
+      })();
       Reader2.prototype.int32 = function read_int32() {
         return this.uint32() | 0;
       };
@@ -1983,436 +1984,6 @@ const MODULES = `
     }
   });
 
-  // node_modules/protobufjs/src/types.js
-  var require_types = __commonJS({
-    "node_modules/protobufjs/src/types.js"(exports2) {
-      "use strict";
-      init_tampermonkey();
-      var types = exports2;
-      var util = require_util();
-      var s = [
-        "double",
-        // 0
-        "float",
-        // 1
-        "int32",
-        // 2
-        "uint32",
-        // 3
-        "sint32",
-        // 4
-        "fixed32",
-        // 5
-        "sfixed32",
-        // 6
-        "int64",
-        // 7
-        "uint64",
-        // 8
-        "sint64",
-        // 9
-        "fixed64",
-        // 10
-        "sfixed64",
-        // 11
-        "bool",
-        // 12
-        "string",
-        // 13
-        "bytes"
-        // 14
-      ];
-      function bake(values, offset3) {
-        var i = 0, o = {};
-        offset3 |= 0;
-        while (i < values.length) o[s[i + offset3]] = values[i++];
-        return o;
-      }
-      types.basic = bake([
-        /* double   */
-        1,
-        /* float    */
-        5,
-        /* int32    */
-        0,
-        /* uint32   */
-        0,
-        /* sint32   */
-        0,
-        /* fixed32  */
-        5,
-        /* sfixed32 */
-        5,
-        /* int64    */
-        0,
-        /* uint64   */
-        0,
-        /* sint64   */
-        0,
-        /* fixed64  */
-        1,
-        /* sfixed64 */
-        1,
-        /* bool     */
-        0,
-        /* string   */
-        2,
-        /* bytes    */
-        2
-      ]);
-      types.defaults = bake([
-        /* double   */
-        0,
-        /* float    */
-        0,
-        /* int32    */
-        0,
-        /* uint32   */
-        0,
-        /* sint32   */
-        0,
-        /* fixed32  */
-        0,
-        /* sfixed32 */
-        0,
-        /* int64    */
-        0,
-        /* uint64   */
-        0,
-        /* sint64   */
-        0,
-        /* fixed64  */
-        0,
-        /* sfixed64 */
-        0,
-        /* bool     */
-        false,
-        /* string   */
-        "",
-        /* bytes    */
-        util.emptyArray,
-        /* message  */
-        null
-      ]);
-      types.long = bake([
-        /* int64    */
-        0,
-        /* uint64   */
-        0,
-        /* sint64   */
-        0,
-        /* fixed64  */
-        1,
-        /* sfixed64 */
-        1
-      ], 7);
-      types.mapKey = bake([
-        /* int32    */
-        0,
-        /* uint32   */
-        0,
-        /* sint32   */
-        0,
-        /* fixed32  */
-        5,
-        /* sfixed32 */
-        5,
-        /* int64    */
-        0,
-        /* uint64   */
-        0,
-        /* sint64   */
-        0,
-        /* fixed64  */
-        1,
-        /* sfixed64 */
-        1,
-        /* bool     */
-        0,
-        /* string   */
-        2
-      ], 2);
-      types.packed = bake([
-        /* double   */
-        1,
-        /* float    */
-        5,
-        /* int32    */
-        0,
-        /* uint32   */
-        0,
-        /* sint32   */
-        0,
-        /* fixed32  */
-        5,
-        /* sfixed32 */
-        5,
-        /* int64    */
-        0,
-        /* uint64   */
-        0,
-        /* sint64   */
-        0,
-        /* fixed64  */
-        1,
-        /* sfixed64 */
-        1,
-        /* bool     */
-        0
-      ]);
-    }
-  });
-
-  // node_modules/protobufjs/src/field.js
-  var require_field = __commonJS({
-    "node_modules/protobufjs/src/field.js"(exports2, module2) {
-      "use strict";
-      init_tampermonkey();
-      module2.exports = Field2;
-      var ReflectionObject2 = require_object();
-      ((Field2.prototype = Object.create(ReflectionObject2.prototype)).constructor = Field2).className = "Field";
-      var Enum = require_enum();
-      var types = require_types();
-      var util = require_util();
-      var Type3;
-      var ruleRe = /^required|optional|repeated\$/;
-      Field2.fromJSON = function fromJSON(name, json) {
-        return new Field2(name, json.id, json.type, json.rule, json.extend, json.options, json.comment);
-      };
-      function Field2(name, id, type, rule, extend, options, comment) {
-        if (util.isObject(rule)) {
-          comment = extend;
-          options = rule;
-          rule = extend = void 0;
-        } else if (util.isObject(extend)) {
-          comment = options;
-          options = extend;
-          extend = void 0;
-        }
-        ReflectionObject2.call(this, name, options);
-        if (!util.isInteger(id) || id < 0)
-          throw TypeError("id must be a non-negative integer");
-        if (!util.isString(type))
-          throw TypeError("type must be a string");
-        if (rule !== void 0 && !ruleRe.test(rule = rule.toString().toLowerCase()))
-          throw TypeError("rule must be a string rule");
-        if (extend !== void 0 && !util.isString(extend))
-          throw TypeError("extend must be a string");
-        if (rule === "proto3_optional") {
-          rule = "optional";
-        }
-        this.rule = rule && rule !== "optional" ? rule : void 0;
-        this.type = type;
-        this.id = id;
-        this.extend = extend || void 0;
-        this.required = rule === "required";
-        this.optional = !this.required;
-        this.repeated = rule === "repeated";
-        this.map = false;
-        this.message = null;
-        this.partOf = null;
-        this.typeDefault = null;
-        this.defaultValue = null;
-        this.long = util.Long ? types.long[type] !== void 0 : (
-          /* istanbul ignore next */
-          false
-        );
-        this.bytes = type === "bytes";
-        this.resolvedType = null;
-        this.extensionField = null;
-        this.declaringField = null;
-        this._packed = null;
-        this.comment = comment;
-      }
-      Object.defineProperty(Field2.prototype, "packed", {
-        get: function() {
-          if (this._packed === null)
-            this._packed = this.getOption("packed") !== false;
-          return this._packed;
-        }
-      });
-      Field2.prototype.setOption = function setOption(name, value, ifNotSet) {
-        if (name === "packed")
-          this._packed = null;
-        return ReflectionObject2.prototype.setOption.call(this, name, value, ifNotSet);
-      };
-      Field2.prototype.toJSON = function toJSON(toJSONOptions) {
-        var keepComments = toJSONOptions ? Boolean(toJSONOptions.keepComments) : false;
-        return util.toObject([
-          "rule",
-          this.rule !== "optional" && this.rule || void 0,
-          "type",
-          this.type,
-          "id",
-          this.id,
-          "extend",
-          this.extend,
-          "options",
-          this.options,
-          "comment",
-          keepComments ? this.comment : void 0
-        ]);
-      };
-      Field2.prototype.resolve = function resolve() {
-        if (this.resolved)
-          return this;
-        if ((this.typeDefault = types.defaults[this.type]) === void 0) {
-          this.resolvedType = (this.declaringField ? this.declaringField.parent : this.parent).lookupTypeOrEnum(this.type);
-          if (this.resolvedType instanceof Type3)
-            this.typeDefault = null;
-          else
-            this.typeDefault = this.resolvedType.values[Object.keys(this.resolvedType.values)[0]];
-        } else if (this.options && this.options.proto3_optional) {
-          this.typeDefault = null;
-        }
-        if (this.options && this.options["default"] != null) {
-          this.typeDefault = this.options["default"];
-          if (this.resolvedType instanceof Enum && typeof this.typeDefault === "string")
-            this.typeDefault = this.resolvedType.values[this.typeDefault];
-        }
-        if (this.options) {
-          if (this.options.packed === true || this.options.packed !== void 0 && this.resolvedType && !(this.resolvedType instanceof Enum))
-            delete this.options.packed;
-          if (!Object.keys(this.options).length)
-            this.options = void 0;
-        }
-        if (this.long) {
-          this.typeDefault = util.Long.fromNumber(this.typeDefault, this.type.charAt(0) === "u");
-          if (Object.freeze)
-            Object.freeze(this.typeDefault);
-        } else if (this.bytes && typeof this.typeDefault === "string") {
-          var buf;
-          if (util.base64.test(this.typeDefault))
-            util.base64.decode(this.typeDefault, buf = util.newBuffer(util.base64.length(this.typeDefault)), 0);
-          else
-            util.utf8.write(this.typeDefault, buf = util.newBuffer(util.utf8.length(this.typeDefault)), 0);
-          this.typeDefault = buf;
-        }
-        if (this.map)
-          this.defaultValue = util.emptyObject;
-        else if (this.repeated)
-          this.defaultValue = util.emptyArray;
-        else
-          this.defaultValue = this.typeDefault;
-        if (this.parent instanceof Type3)
-          this.parent.ctor.prototype[this.name] = this.defaultValue;
-        return ReflectionObject2.prototype.resolve.call(this);
-      };
-      Field2.d = function decorateField(fieldId, fieldType, fieldRule, defaultValue) {
-        if (typeof fieldType === "function")
-          fieldType = util.decorateType(fieldType).name;
-        else if (fieldType && typeof fieldType === "object")
-          fieldType = util.decorateEnum(fieldType).name;
-        return function fieldDecorator(prototype, fieldName) {
-          util.decorateType(prototype.constructor).add(new Field2(fieldName, fieldId, fieldType, fieldRule, { "default": defaultValue }));
-        };
-      };
-      Field2._configure = function configure(Type_) {
-        Type3 = Type_;
-      };
-    }
-  });
-
-  // node_modules/protobufjs/src/oneof.js
-  var require_oneof = __commonJS({
-    "node_modules/protobufjs/src/oneof.js"(exports2, module2) {
-      "use strict";
-      init_tampermonkey();
-      module2.exports = OneOf2;
-      var ReflectionObject2 = require_object();
-      ((OneOf2.prototype = Object.create(ReflectionObject2.prototype)).constructor = OneOf2).className = "OneOf";
-      var Field2 = require_field();
-      var util = require_util();
-      function OneOf2(name, fieldNames, options, comment) {
-        if (!Array.isArray(fieldNames)) {
-          options = fieldNames;
-          fieldNames = void 0;
-        }
-        ReflectionObject2.call(this, name, options);
-        if (!(fieldNames === void 0 || Array.isArray(fieldNames)))
-          throw TypeError("fieldNames must be an Array");
-        this.oneof = fieldNames || [];
-        this.fieldsArray = [];
-        this.comment = comment;
-      }
-      OneOf2.fromJSON = function fromJSON(name, json) {
-        return new OneOf2(name, json.oneof, json.options, json.comment);
-      };
-      OneOf2.prototype.toJSON = function toJSON(toJSONOptions) {
-        var keepComments = toJSONOptions ? Boolean(toJSONOptions.keepComments) : false;
-        return util.toObject([
-          "options",
-          this.options,
-          "oneof",
-          this.oneof,
-          "comment",
-          keepComments ? this.comment : void 0
-        ]);
-      };
-      function addFieldsToParent(oneof) {
-        if (oneof.parent) {
-          for (var i = 0; i < oneof.fieldsArray.length; ++i)
-            if (!oneof.fieldsArray[i].parent)
-              oneof.parent.add(oneof.fieldsArray[i]);
-        }
-      }
-      OneOf2.prototype.add = function add(field) {
-        if (!(field instanceof Field2))
-          throw TypeError("field must be a Field");
-        if (field.parent && field.parent !== this.parent)
-          field.parent.remove(field);
-        this.oneof.push(field.name);
-        this.fieldsArray.push(field);
-        field.partOf = this;
-        addFieldsToParent(this);
-        return this;
-      };
-      OneOf2.prototype.remove = function remove(field) {
-        if (!(field instanceof Field2))
-          throw TypeError("field must be a Field");
-        var index = this.fieldsArray.indexOf(field);
-        if (index < 0)
-          throw Error(field + " is not a member of " + this);
-        this.fieldsArray.splice(index, 1);
-        index = this.oneof.indexOf(field.name);
-        if (index > -1)
-          this.oneof.splice(index, 1);
-        field.partOf = null;
-        return this;
-      };
-      OneOf2.prototype.onAdd = function onAdd(parent) {
-        ReflectionObject2.prototype.onAdd.call(this, parent);
-        var self2 = this;
-        for (var i = 0; i < this.oneof.length; ++i) {
-          var field = parent.get(this.oneof[i]);
-          if (field && !field.partOf) {
-            field.partOf = self2;
-            self2.fieldsArray.push(field);
-          }
-        }
-        addFieldsToParent(this);
-      };
-      OneOf2.prototype.onRemove = function onRemove(parent) {
-        for (var i = 0, field; i < this.fieldsArray.length; ++i)
-          if ((field = this.fieldsArray[i]).parent)
-            field.parent.remove(field);
-        ReflectionObject2.prototype.onRemove.call(this, parent);
-      };
-      OneOf2.d = function decorateOneOf() {
-        var fieldNames = new Array(arguments.length), index = 0;
-        while (index < arguments.length)
-          fieldNames[index] = arguments[index++];
-        return function oneOfDecorator(prototype, oneofName) {
-          util.decorateType(prototype.constructor).add(new OneOf2(oneofName, fieldNames));
-          Object.defineProperty(prototype, oneofName, {
-            get: util.oneOfGetter(fieldNames),
-            set: util.oneOfSetter(fieldNames)
-          });
-        };
-      };
-    }
-  });
-
   // node_modules/protobufjs/src/namespace.js
   var require_namespace = __commonJS({
     "node_modules/protobufjs/src/namespace.js"(exports2, module2) {
@@ -2459,9 +2030,17 @@ const MODULES = `
         ReflectionObject2.call(this, name, options);
         this.nested = void 0;
         this._nestedArray = null;
+        this._lookupCache = {};
+        this._needsRecursiveFeatureResolution = true;
+        this._needsRecursiveResolve = true;
       }
       function clearCache(namespace) {
         namespace._nestedArray = null;
+        namespace._lookupCache = {};
+        var parent = namespace;
+        while (parent = parent.parent) {
+          parent._lookupCache = {};
+        }
         return namespace;
       }
       Object.defineProperty(Namespace.prototype, "nestedArray", {
@@ -2519,6 +2098,18 @@ const MODULES = `
           }
         }
         this.nested[object.name] = object;
+        if (!(this instanceof Type3 || this instanceof Service || this instanceof Enum || this instanceof Field2)) {
+          if (!object._edition) {
+            object._edition = object._defaultEdition;
+          }
+        }
+        this._needsRecursiveFeatureResolution = true;
+        this._needsRecursiveResolve = true;
+        var parent = this;
+        while (parent = parent.parent) {
+          parent._needsRecursiveFeatureResolution = true;
+          parent._needsRecursiveResolve = true;
+        }
         object.onAdd(this);
         return clearCache(this);
       };
@@ -2555,13 +2146,27 @@ const MODULES = `
         return ptr;
       };
       Namespace.prototype.resolveAll = function resolveAll() {
+        if (!this._needsRecursiveResolve) return this;
+        this._resolveFeaturesRecursive(this._edition);
         var nested = this.nestedArray, i = 0;
+        this.resolve();
         while (i < nested.length)
           if (nested[i] instanceof Namespace)
             nested[i++].resolveAll();
           else
             nested[i++].resolve();
-        return this.resolve();
+        this._needsRecursiveResolve = false;
+        return this;
+      };
+      Namespace.prototype._resolveFeaturesRecursive = function _resolveFeaturesRecursive(edition) {
+        if (!this._needsRecursiveFeatureResolution) return this;
+        this._needsRecursiveFeatureResolution = false;
+        edition = this._edition || edition;
+        ReflectionObject2.prototype._resolveFeaturesRecursive.call(this, edition);
+        this.nestedArray.forEach((nested) => {
+          nested._resolveFeaturesRecursive(edition);
+        });
+        return this;
       };
       Namespace.prototype.lookup = function lookup(path, filterTypes, parentAlreadyChecked) {
         if (typeof filterTypes === "boolean") {
@@ -2575,22 +2180,49 @@ const MODULES = `
           path = path.split(".");
         } else if (!path.length)
           return this;
+        var flatPath = path.join(".");
         if (path[0] === "")
           return this.root.lookup(path.slice(1), filterTypes);
+        var found = this.root._fullyQualifiedObjects && this.root._fullyQualifiedObjects["." + flatPath];
+        if (found && (!filterTypes || filterTypes.indexOf(found.constructor) > -1)) {
+          return found;
+        }
+        found = this._lookupImpl(path, flatPath);
+        if (found && (!filterTypes || filterTypes.indexOf(found.constructor) > -1)) {
+          return found;
+        }
+        if (parentAlreadyChecked)
+          return null;
+        var current = this;
+        while (current.parent) {
+          found = current.parent._lookupImpl(path, flatPath);
+          if (found && (!filterTypes || filterTypes.indexOf(found.constructor) > -1)) {
+            return found;
+          }
+          current = current.parent;
+        }
+        return null;
+      };
+      Namespace.prototype._lookupImpl = function lookup(path, flatPath) {
+        if (Object.prototype.hasOwnProperty.call(this._lookupCache, flatPath)) {
+          return this._lookupCache[flatPath];
+        }
         var found = this.get(path[0]);
+        var exact = null;
         if (found) {
           if (path.length === 1) {
-            if (!filterTypes || filterTypes.indexOf(found.constructor) > -1)
-              return found;
-          } else if (found instanceof Namespace && (found = found.lookup(path.slice(1), filterTypes, true)))
-            return found;
-        } else
+            exact = found;
+          } else if (found instanceof Namespace) {
+            path = path.slice(1);
+            exact = found._lookupImpl(path, path.join("."));
+          }
+        } else {
           for (var i = 0; i < this.nestedArray.length; ++i)
-            if (this._nestedArray[i] instanceof Namespace && (found = this._nestedArray[i].lookup(path, filterTypes, true)))
-              return found;
-        if (this.parent === null || parentAlreadyChecked)
-          return null;
-        return this.parent.lookup(path, filterTypes);
+            if (this._nestedArray[i] instanceof Namespace && (found = this._nestedArray[i]._lookupImpl(path, flatPath)))
+              exact = found;
+        }
+        this._lookupCache[flatPath] = exact;
+        return exact;
       };
       Namespace.prototype.lookupType = function lookupType(path) {
         var found = this.lookup(path, [Type3]);
@@ -2773,13 +2405,18 @@ const MODULES = `
             service.add(Method.fromJSON(names[i], json.methods[names[i]]));
         if (json.nested)
           service.addJSON(json.nested);
+        if (json.edition)
+          service._edition = json.edition;
         service.comment = json.comment;
+        service._defaultEdition = "proto3";
         return service;
       };
       Service.prototype.toJSON = function toJSON(toJSONOptions) {
         var inherited = Namespace.prototype.toJSON.call(this, toJSONOptions);
         var keepComments = toJSONOptions ? Boolean(toJSONOptions.keepComments) : false;
         return util.toObject([
+          "edition",
+          this._editionToJSON(),
           "options",
           inherited && inherited.options || void 0,
           "methods",
@@ -2804,10 +2441,21 @@ const MODULES = `
         return this.methods[name] || Namespace.prototype.get.call(this, name);
       };
       Service.prototype.resolveAll = function resolveAll() {
+        if (!this._needsRecursiveResolve) return this;
+        Namespace.prototype.resolve.call(this);
         var methods = this.methodsArray;
         for (var i = 0; i < methods.length; ++i)
           methods[i].resolve();
-        return Namespace.prototype.resolve.call(this);
+        return this;
+      };
+      Service.prototype._resolveFeaturesRecursive = function _resolveFeaturesRecursive(edition) {
+        if (!this._needsRecursiveFeatureResolution) return this;
+        edition = this._edition || edition;
+        Namespace.prototype._resolveFeaturesRecursive.call(this, edition);
+        this.methodsArray.forEach((method) => {
+          method._resolveFeaturesRecursive(edition);
+        });
+        return this;
       };
       Service.prototype.add = function add(object) {
         if (this.get(object.name))
@@ -2900,11 +2548,9 @@ const MODULES = `
         return "missing required '" + field.name + "'";
       }
       function decoder(mtype) {
-        var gen = util.codegen(["r", "l"], mtype.name + "\$decode")("if(!(r instanceof Reader))")("r=Reader.create(r)")("var c=l===undefined?r.len:r.pos+l,m=new this.ctor" + (mtype.fieldsArray.filter(function(field2) {
+        var gen = util.codegen(["r", "l", "e"], mtype.name + "\$decode")("if(!(r instanceof Reader))")("r=Reader.create(r)")("var c=l===undefined?r.len:r.pos+l,m=new this.ctor" + (mtype.fieldsArray.filter(function(field2) {
           return field2.map;
-        }).length ? ",k,value" : ""))("while(r.pos<c){")("var t=r.uint32()");
-        if (mtype.group) gen("if((t&7)===4)")("break");
-        gen("switch(t>>>3){");
+        }).length ? ",k,value" : ""))("while(r.pos<c){")("var t=r.uint32()")("if(t===e)")("break")("switch(t>>>3){");
         var i = 0;
         for (; i < /* initializes */
         mtype.fieldsArray.length; ++i) {
@@ -2925,9 +2571,9 @@ const MODULES = `
           } else if (field.repeated) {
             gen("if(!(%s&&%s.length))", ref, ref)("%s=[]", ref);
             if (types.packed[type] !== void 0) gen("if((t&7)===2){")("var c2=r.uint32()+r.pos")("while(r.pos<c2)")("%s.push(r.%s())", ref, type)("}else");
-            if (types.basic[type] === void 0) gen(field.resolvedType.group ? "%s.push(types[%i].decode(r))" : "%s.push(types[%i].decode(r,r.uint32()))", ref, i);
+            if (types.basic[type] === void 0) gen(field.delimited ? "%s.push(types[%i].decode(r,undefined,((t&~7)|4)))" : "%s.push(types[%i].decode(r,r.uint32()))", ref, i);
             else gen("%s.push(r.%s())", ref, type);
-          } else if (types.basic[type] === void 0) gen(field.resolvedType.group ? "%s=types[%i].decode(r)" : "%s=types[%i].decode(r,r.uint32())", ref, i);
+          } else if (types.basic[type] === void 0) gen(field.delimited ? "%s=types[%i].decode(r,undefined,((t&~7)|4))" : "%s=types[%i].decode(r,r.uint32())", ref, i);
           else gen("%s=r.%s()", ref, type);
           gen("break")("}");
         }
@@ -3458,12 +3104,17 @@ const MODULES = `
           type.group = true;
         if (json.comment)
           type.comment = json.comment;
+        if (json.edition)
+          type._edition = json.edition;
+        type._defaultEdition = "proto3";
         return type;
       };
       Type3.prototype.toJSON = function toJSON(toJSONOptions) {
         var inherited = Namespace.prototype.toJSON.call(this, toJSONOptions);
         var keepComments = toJSONOptions ? Boolean(toJSONOptions.keepComments) : false;
         return util.toObject([
+          "edition",
+          this._editionToJSON(),
           "options",
           inherited && inherited.options || void 0,
           "oneofs",
@@ -3485,14 +3136,28 @@ const MODULES = `
         ]);
       };
       Type3.prototype.resolveAll = function resolveAll() {
-        var fields = this.fieldsArray, i = 0;
-        while (i < fields.length)
-          fields[i++].resolve();
+        if (!this._needsRecursiveResolve) return this;
+        Namespace.prototype.resolveAll.call(this);
         var oneofs = this.oneofsArray;
         i = 0;
         while (i < oneofs.length)
           oneofs[i++].resolve();
-        return Namespace.prototype.resolveAll.call(this);
+        var fields = this.fieldsArray, i = 0;
+        while (i < fields.length)
+          fields[i++].resolve();
+        return this;
+      };
+      Type3.prototype._resolveFeaturesRecursive = function _resolveFeaturesRecursive(edition) {
+        if (!this._needsRecursiveFeatureResolution) return this;
+        edition = this._edition || edition;
+        Namespace.prototype._resolveFeaturesRecursive.call(this, edition);
+        this.oneofsArray.forEach((oneof) => {
+          oneof._resolveFeatures(edition);
+        });
+        this.fieldsArray.forEach((field) => {
+          field._resolveFeatures(edition);
+        });
+        return this;
       };
       Type3.prototype.get = function get(name) {
         return this.fields[name] || this.oneofs && this.oneofs[name] || this.nested && this.nested[name] || null;
@@ -3641,13 +3306,15 @@ const MODULES = `
         Namespace.call(this, "", options);
         this.deferred = [];
         this.files = [];
+        this._edition = "proto2";
+        this._fullyQualifiedObjects = {};
       }
       Root4.fromJSON = function fromJSON(json, root) {
         if (!root)
           root = new Root4();
         if (json.options)
           root.setOptions(json.options);
-        return root.addJSON(json.nested);
+        return root.addJSON(json.nested).resolveAll();
       };
       Root4.prototype.resolvePath = util.path.resolve;
       Root4.prototype.fetch = util.fetch;
@@ -3659,14 +3326,20 @@ const MODULES = `
           options = void 0;
         }
         var self2 = this;
-        if (!callback)
+        if (!callback) {
           return util.asPromise(load2, self2, filename, options);
+        }
         var sync = callback === SYNC;
         function finish(err2, root) {
-          if (!callback)
+          if (!callback) {
             return;
-          if (sync)
+          }
+          if (sync) {
             throw err2;
+          }
+          if (root) {
+            root.resolveAll();
+          }
           var cb = callback;
           callback = null;
           cb(err2, root);
@@ -3702,18 +3375,20 @@ const MODULES = `
           } catch (err2) {
             finish(err2);
           }
-          if (!sync && !queued)
+          if (!sync && !queued) {
             finish(null, self2);
+          }
         }
         function fetch2(filename2, weak) {
           filename2 = getBundledFileName(filename2) || filename2;
-          if (self2.files.indexOf(filename2) > -1)
+          if (self2.files.indexOf(filename2) > -1) {
             return;
+          }
           self2.files.push(filename2);
           if (filename2 in common) {
-            if (sync)
+            if (sync) {
               process(filename2, common[filename2]);
-            else {
+            } else {
               ++queued;
               setTimeout(function() {
                 --queued;
@@ -3736,8 +3411,9 @@ const MODULES = `
             ++queued;
             self2.fetch(filename2, function(err2, source2) {
               --queued;
-              if (!callback)
+              if (!callback) {
                 return;
+              }
               if (err2) {
                 if (!weak)
                   finish(err2);
@@ -3750,16 +3426,20 @@ const MODULES = `
           }
         }
         var queued = 0;
-        if (util.isString(filename))
+        if (util.isString(filename)) {
           filename = [filename];
+        }
         for (var i = 0, resolved; i < filename.length; ++i)
           if (resolved = self2.resolvePath("", filename[i]))
             fetch2(resolved);
-        if (sync)
+        if (sync) {
+          self2.resolveAll();
           return self2;
-        if (!queued)
+        }
+        if (!queued) {
           finish(null, self2);
-        return void 0;
+        }
+        return self2;
       };
       Root4.prototype.loadSync = function loadSync(filename, options) {
         if (!util.isNode)
@@ -3767,6 +3447,7 @@ const MODULES = `
         return this.load(filename, options, SYNC);
       };
       Root4.prototype.resolveAll = function resolveAll() {
+        if (!this._needsRecursiveResolve) return this;
         if (this.deferred.length)
           throw Error("unresolvable extensions: " + this.deferred.map(function(field) {
             return "'extend " + field.extend + "' in " + field.parent.fullName;
@@ -3814,6 +3495,9 @@ const MODULES = `
           if (exposeRe.test(object.name))
             object.parent[object.name] = object;
         }
+        if (object instanceof Type3 || object instanceof Enum || object instanceof Field2) {
+          this._fullyQualifiedObjects[object.fullName] = object;
+        }
       };
       Root4.prototype._handleRemove = function _handleRemove(object) {
         if (object instanceof Field2) {
@@ -3843,6 +3527,7 @@ const MODULES = `
           if (exposeRe.test(object.name))
             delete object.parent[object.name];
         }
+        delete this._fullyQualifiedObjects[object.fullName];
       };
       Root4._configure = function(Type_, parse_, common_) {
         Type3 = Type_;
@@ -3934,7 +3619,7 @@ const MODULES = `
         Object.defineProperty(object, "\$type", { value: enm, enumerable: false });
         return enm;
       };
-      util.setProperty = function setProperty(dst, path, value) {
+      util.setProperty = function setProperty(dst, path, value, ifNotSet) {
         function setProp(dst2, path2, value2) {
           var part = path2.shift();
           if (part === "__proto__" || part === "prototype") {
@@ -3944,6 +3629,8 @@ const MODULES = `
             dst2[part] = setProp(dst2[part] || {}, path2, value2);
           } else {
             var prevValue = dst2[part];
+            if (prevValue && ifNotSet)
+              return dst2;
             if (prevValue)
               value2 = [].concat(prevValue).concat(value2);
             dst2[part] = value2;
@@ -3965,6 +3652,493 @@ const MODULES = `
     }
   });
 
+  // node_modules/protobufjs/src/types.js
+  var require_types = __commonJS({
+    "node_modules/protobufjs/src/types.js"(exports2) {
+      "use strict";
+      init_tampermonkey();
+      var types = exports2;
+      var util = require_util();
+      var s = [
+        "double",
+        // 0
+        "float",
+        // 1
+        "int32",
+        // 2
+        "uint32",
+        // 3
+        "sint32",
+        // 4
+        "fixed32",
+        // 5
+        "sfixed32",
+        // 6
+        "int64",
+        // 7
+        "uint64",
+        // 8
+        "sint64",
+        // 9
+        "fixed64",
+        // 10
+        "sfixed64",
+        // 11
+        "bool",
+        // 12
+        "string",
+        // 13
+        "bytes"
+        // 14
+      ];
+      function bake(values, offset3) {
+        var i = 0, o = {};
+        offset3 |= 0;
+        while (i < values.length) o[s[i + offset3]] = values[i++];
+        return o;
+      }
+      types.basic = bake([
+        /* double   */
+        1,
+        /* float    */
+        5,
+        /* int32    */
+        0,
+        /* uint32   */
+        0,
+        /* sint32   */
+        0,
+        /* fixed32  */
+        5,
+        /* sfixed32 */
+        5,
+        /* int64    */
+        0,
+        /* uint64   */
+        0,
+        /* sint64   */
+        0,
+        /* fixed64  */
+        1,
+        /* sfixed64 */
+        1,
+        /* bool     */
+        0,
+        /* string   */
+        2,
+        /* bytes    */
+        2
+      ]);
+      types.defaults = bake([
+        /* double   */
+        0,
+        /* float    */
+        0,
+        /* int32    */
+        0,
+        /* uint32   */
+        0,
+        /* sint32   */
+        0,
+        /* fixed32  */
+        0,
+        /* sfixed32 */
+        0,
+        /* int64    */
+        0,
+        /* uint64   */
+        0,
+        /* sint64   */
+        0,
+        /* fixed64  */
+        0,
+        /* sfixed64 */
+        0,
+        /* bool     */
+        false,
+        /* string   */
+        "",
+        /* bytes    */
+        util.emptyArray,
+        /* message  */
+        null
+      ]);
+      types.long = bake([
+        /* int64    */
+        0,
+        /* uint64   */
+        0,
+        /* sint64   */
+        0,
+        /* fixed64  */
+        1,
+        /* sfixed64 */
+        1
+      ], 7);
+      types.mapKey = bake([
+        /* int32    */
+        0,
+        /* uint32   */
+        0,
+        /* sint32   */
+        0,
+        /* fixed32  */
+        5,
+        /* sfixed32 */
+        5,
+        /* int64    */
+        0,
+        /* uint64   */
+        0,
+        /* sint64   */
+        0,
+        /* fixed64  */
+        1,
+        /* sfixed64 */
+        1,
+        /* bool     */
+        0,
+        /* string   */
+        2
+      ], 2);
+      types.packed = bake([
+        /* double   */
+        1,
+        /* float    */
+        5,
+        /* int32    */
+        0,
+        /* uint32   */
+        0,
+        /* sint32   */
+        0,
+        /* fixed32  */
+        5,
+        /* sfixed32 */
+        5,
+        /* int64    */
+        0,
+        /* uint64   */
+        0,
+        /* sint64   */
+        0,
+        /* fixed64  */
+        1,
+        /* sfixed64 */
+        1,
+        /* bool     */
+        0
+      ]);
+    }
+  });
+
+  // node_modules/protobufjs/src/field.js
+  var require_field = __commonJS({
+    "node_modules/protobufjs/src/field.js"(exports2, module2) {
+      "use strict";
+      init_tampermonkey();
+      module2.exports = Field2;
+      var ReflectionObject2 = require_object();
+      ((Field2.prototype = Object.create(ReflectionObject2.prototype)).constructor = Field2).className = "Field";
+      var Enum = require_enum();
+      var types = require_types();
+      var util = require_util();
+      var Type3;
+      var ruleRe = /^required|optional|repeated\$/;
+      Field2.fromJSON = function fromJSON(name, json) {
+        var field = new Field2(name, json.id, json.type, json.rule, json.extend, json.options, json.comment);
+        if (json.edition)
+          field._edition = json.edition;
+        field._defaultEdition = "proto3";
+        return field;
+      };
+      function Field2(name, id, type, rule, extend, options, comment) {
+        if (util.isObject(rule)) {
+          comment = extend;
+          options = rule;
+          rule = extend = void 0;
+        } else if (util.isObject(extend)) {
+          comment = options;
+          options = extend;
+          extend = void 0;
+        }
+        ReflectionObject2.call(this, name, options);
+        if (!util.isInteger(id) || id < 0)
+          throw TypeError("id must be a non-negative integer");
+        if (!util.isString(type))
+          throw TypeError("type must be a string");
+        if (rule !== void 0 && !ruleRe.test(rule = rule.toString().toLowerCase()))
+          throw TypeError("rule must be a string rule");
+        if (extend !== void 0 && !util.isString(extend))
+          throw TypeError("extend must be a string");
+        if (rule === "proto3_optional") {
+          rule = "optional";
+        }
+        this.rule = rule && rule !== "optional" ? rule : void 0;
+        this.type = type;
+        this.id = id;
+        this.extend = extend || void 0;
+        this.repeated = rule === "repeated";
+        this.map = false;
+        this.message = null;
+        this.partOf = null;
+        this.typeDefault = null;
+        this.defaultValue = null;
+        this.long = util.Long ? types.long[type] !== void 0 : (
+          /* istanbul ignore next */
+          false
+        );
+        this.bytes = type === "bytes";
+        this.resolvedType = null;
+        this.extensionField = null;
+        this.declaringField = null;
+        this.comment = comment;
+      }
+      Object.defineProperty(Field2.prototype, "required", {
+        get: function() {
+          return this._features.field_presence === "LEGACY_REQUIRED";
+        }
+      });
+      Object.defineProperty(Field2.prototype, "optional", {
+        get: function() {
+          return !this.required;
+        }
+      });
+      Object.defineProperty(Field2.prototype, "delimited", {
+        get: function() {
+          return this.resolvedType instanceof Type3 && this._features.message_encoding === "DELIMITED";
+        }
+      });
+      Object.defineProperty(Field2.prototype, "packed", {
+        get: function() {
+          return this._features.repeated_field_encoding === "PACKED";
+        }
+      });
+      Object.defineProperty(Field2.prototype, "hasPresence", {
+        get: function() {
+          if (this.repeated || this.map) {
+            return false;
+          }
+          return this.partOf || // oneofs
+          this.declaringField || this.extensionField || // extensions
+          this._features.field_presence !== "IMPLICIT";
+        }
+      });
+      Field2.prototype.setOption = function setOption(name, value, ifNotSet) {
+        return ReflectionObject2.prototype.setOption.call(this, name, value, ifNotSet);
+      };
+      Field2.prototype.toJSON = function toJSON(toJSONOptions) {
+        var keepComments = toJSONOptions ? Boolean(toJSONOptions.keepComments) : false;
+        return util.toObject([
+          "edition",
+          this._editionToJSON(),
+          "rule",
+          this.rule !== "optional" && this.rule || void 0,
+          "type",
+          this.type,
+          "id",
+          this.id,
+          "extend",
+          this.extend,
+          "options",
+          this.options,
+          "comment",
+          keepComments ? this.comment : void 0
+        ]);
+      };
+      Field2.prototype.resolve = function resolve() {
+        if (this.resolved)
+          return this;
+        if ((this.typeDefault = types.defaults[this.type]) === void 0) {
+          this.resolvedType = (this.declaringField ? this.declaringField.parent : this.parent).lookupTypeOrEnum(this.type);
+          if (this.resolvedType instanceof Type3)
+            this.typeDefault = null;
+          else
+            this.typeDefault = this.resolvedType.values[Object.keys(this.resolvedType.values)[0]];
+        } else if (this.options && this.options.proto3_optional) {
+          this.typeDefault = null;
+        }
+        if (this.options && this.options["default"] != null) {
+          this.typeDefault = this.options["default"];
+          if (this.resolvedType instanceof Enum && typeof this.typeDefault === "string")
+            this.typeDefault = this.resolvedType.values[this.typeDefault];
+        }
+        if (this.options) {
+          if (this.options.packed !== void 0 && this.resolvedType && !(this.resolvedType instanceof Enum))
+            delete this.options.packed;
+          if (!Object.keys(this.options).length)
+            this.options = void 0;
+        }
+        if (this.long) {
+          this.typeDefault = util.Long.fromNumber(this.typeDefault, this.type.charAt(0) === "u");
+          if (Object.freeze)
+            Object.freeze(this.typeDefault);
+        } else if (this.bytes && typeof this.typeDefault === "string") {
+          var buf;
+          if (util.base64.test(this.typeDefault))
+            util.base64.decode(this.typeDefault, buf = util.newBuffer(util.base64.length(this.typeDefault)), 0);
+          else
+            util.utf8.write(this.typeDefault, buf = util.newBuffer(util.utf8.length(this.typeDefault)), 0);
+          this.typeDefault = buf;
+        }
+        if (this.map)
+          this.defaultValue = util.emptyObject;
+        else if (this.repeated)
+          this.defaultValue = util.emptyArray;
+        else
+          this.defaultValue = this.typeDefault;
+        if (this.parent instanceof Type3)
+          this.parent.ctor.prototype[this.name] = this.defaultValue;
+        return ReflectionObject2.prototype.resolve.call(this);
+      };
+      Field2.prototype._inferLegacyProtoFeatures = function _inferLegacyProtoFeatures(edition) {
+        if (edition !== "proto2" && edition !== "proto3") {
+          return {};
+        }
+        var features = {};
+        if (this.rule === "required") {
+          features.field_presence = "LEGACY_REQUIRED";
+        }
+        if (this.parent && types.defaults[this.type] === void 0) {
+          var type = this.parent.get(this.type.split(".").pop());
+          if (type && type instanceof Type3 && type.group) {
+            features.message_encoding = "DELIMITED";
+          }
+        }
+        if (this.getOption("packed") === true) {
+          features.repeated_field_encoding = "PACKED";
+        } else if (this.getOption("packed") === false) {
+          features.repeated_field_encoding = "EXPANDED";
+        }
+        return features;
+      };
+      Field2.prototype._resolveFeatures = function _resolveFeatures(edition) {
+        return ReflectionObject2.prototype._resolveFeatures.call(this, this._edition || edition);
+      };
+      Field2.d = function decorateField(fieldId, fieldType, fieldRule, defaultValue) {
+        if (typeof fieldType === "function")
+          fieldType = util.decorateType(fieldType).name;
+        else if (fieldType && typeof fieldType === "object")
+          fieldType = util.decorateEnum(fieldType).name;
+        return function fieldDecorator(prototype, fieldName) {
+          util.decorateType(prototype.constructor).add(new Field2(fieldName, fieldId, fieldType, fieldRule, { "default": defaultValue }));
+        };
+      };
+      Field2._configure = function configure(Type_) {
+        Type3 = Type_;
+      };
+    }
+  });
+
+  // node_modules/protobufjs/src/oneof.js
+  var require_oneof = __commonJS({
+    "node_modules/protobufjs/src/oneof.js"(exports2, module2) {
+      "use strict";
+      init_tampermonkey();
+      module2.exports = OneOf2;
+      var ReflectionObject2 = require_object();
+      ((OneOf2.prototype = Object.create(ReflectionObject2.prototype)).constructor = OneOf2).className = "OneOf";
+      var Field2 = require_field();
+      var util = require_util();
+      function OneOf2(name, fieldNames, options, comment) {
+        if (!Array.isArray(fieldNames)) {
+          options = fieldNames;
+          fieldNames = void 0;
+        }
+        ReflectionObject2.call(this, name, options);
+        if (!(fieldNames === void 0 || Array.isArray(fieldNames)))
+          throw TypeError("fieldNames must be an Array");
+        this.oneof = fieldNames || [];
+        this.fieldsArray = [];
+        this.comment = comment;
+      }
+      OneOf2.fromJSON = function fromJSON(name, json) {
+        return new OneOf2(name, json.oneof, json.options, json.comment);
+      };
+      OneOf2.prototype.toJSON = function toJSON(toJSONOptions) {
+        var keepComments = toJSONOptions ? Boolean(toJSONOptions.keepComments) : false;
+        return util.toObject([
+          "options",
+          this.options,
+          "oneof",
+          this.oneof,
+          "comment",
+          keepComments ? this.comment : void 0
+        ]);
+      };
+      function addFieldsToParent(oneof) {
+        if (oneof.parent) {
+          for (var i = 0; i < oneof.fieldsArray.length; ++i)
+            if (!oneof.fieldsArray[i].parent)
+              oneof.parent.add(oneof.fieldsArray[i]);
+        }
+      }
+      OneOf2.prototype.add = function add(field) {
+        if (!(field instanceof Field2))
+          throw TypeError("field must be a Field");
+        if (field.parent && field.parent !== this.parent)
+          field.parent.remove(field);
+        this.oneof.push(field.name);
+        this.fieldsArray.push(field);
+        field.partOf = this;
+        addFieldsToParent(this);
+        return this;
+      };
+      OneOf2.prototype.remove = function remove(field) {
+        if (!(field instanceof Field2))
+          throw TypeError("field must be a Field");
+        var index = this.fieldsArray.indexOf(field);
+        if (index < 0)
+          throw Error(field + " is not a member of " + this);
+        this.fieldsArray.splice(index, 1);
+        index = this.oneof.indexOf(field.name);
+        if (index > -1)
+          this.oneof.splice(index, 1);
+        field.partOf = null;
+        return this;
+      };
+      OneOf2.prototype.onAdd = function onAdd(parent) {
+        ReflectionObject2.prototype.onAdd.call(this, parent);
+        var self2 = this;
+        for (var i = 0; i < this.oneof.length; ++i) {
+          var field = parent.get(this.oneof[i]);
+          if (field && !field.partOf) {
+            field.partOf = self2;
+            self2.fieldsArray.push(field);
+          }
+        }
+        addFieldsToParent(this);
+      };
+      OneOf2.prototype.onRemove = function onRemove(parent) {
+        for (var i = 0, field; i < this.fieldsArray.length; ++i)
+          if ((field = this.fieldsArray[i]).parent)
+            field.parent.remove(field);
+        ReflectionObject2.prototype.onRemove.call(this, parent);
+      };
+      Object.defineProperty(OneOf2.prototype, "isProto3Optional", {
+        get: function() {
+          if (this.fieldsArray == null || this.fieldsArray.length !== 1) {
+            return false;
+          }
+          var field = this.fieldsArray[0];
+          return field.options != null && field.options["proto3_optional"] === true;
+        }
+      });
+      OneOf2.d = function decorateOneOf() {
+        var fieldNames = new Array(arguments.length), index = 0;
+        while (index < arguments.length)
+          fieldNames[index] = arguments[index++];
+        return function oneOfDecorator(prototype, oneofName) {
+          util.decorateType(prototype.constructor).add(new OneOf2(oneofName, fieldNames));
+          Object.defineProperty(prototype, oneofName, {
+            get: util.oneOfGetter(fieldNames),
+            set: util.oneOfSetter(fieldNames)
+          });
+        };
+      };
+    }
+  });
+
   // node_modules/protobufjs/src/object.js
   var require_object = __commonJS({
     "node_modules/protobufjs/src/object.js"(exports2, module2) {
@@ -3972,8 +4146,13 @@ const MODULES = `
       init_tampermonkey();
       module2.exports = ReflectionObject2;
       ReflectionObject2.className = "ReflectionObject";
+      var OneOf2 = require_oneof();
       var util = require_util();
       var Root4;
+      var editions2024Defaults = { enum_type: "OPEN", field_presence: "EXPLICIT", json_format: "ALLOW", message_encoding: "LENGTH_PREFIXED", repeated_field_encoding: "PACKED", utf8_validation: "VERIFY", enforce_naming_style: "STYLE2024", default_symbol_visibility: "EXPORT_TOP_LEVEL" };
+      var editions2023Defaults = { enum_type: "OPEN", field_presence: "EXPLICIT", json_format: "ALLOW", message_encoding: "LENGTH_PREFIXED", repeated_field_encoding: "PACKED", utf8_validation: "VERIFY", enforce_naming_style: "STYLE_LEGACY", default_symbol_visibility: "EXPORT_ALL" };
+      var proto2Defaults = { enum_type: "CLOSED", field_presence: "EXPLICIT", json_format: "LEGACY_BEST_EFFORT", message_encoding: "LENGTH_PREFIXED", repeated_field_encoding: "EXPANDED", utf8_validation: "NONE", enforce_naming_style: "STYLE_LEGACY", default_symbol_visibility: "EXPORT_ALL" };
+      var proto3Defaults = { enum_type: "OPEN", field_presence: "IMPLICIT", json_format: "ALLOW", message_encoding: "LENGTH_PREFIXED", repeated_field_encoding: "PACKED", utf8_validation: "VERIFY", enforce_naming_style: "STYLE_LEGACY", default_symbol_visibility: "EXPORT_ALL" };
       function ReflectionObject2(name, options) {
         if (!util.isString(name))
           throw TypeError("name must be a string");
@@ -3982,6 +4161,10 @@ const MODULES = `
         this.options = options;
         this.parsedOptions = null;
         this.name = name;
+        this._edition = null;
+        this._defaultEdition = "proto2";
+        this._features = {};
+        this._featuresResolved = false;
         this.parent = null;
         this.resolved = false;
         this.comment = null;
@@ -4046,14 +4229,69 @@ const MODULES = `
           this.resolved = true;
         return this;
       };
+      ReflectionObject2.prototype._resolveFeaturesRecursive = function _resolveFeaturesRecursive(edition) {
+        return this._resolveFeatures(this._edition || edition);
+      };
+      ReflectionObject2.prototype._resolveFeatures = function _resolveFeatures(edition) {
+        if (this._featuresResolved) {
+          return;
+        }
+        var defaults = {};
+        if (!edition) {
+          throw new Error("Unknown edition for " + this.fullName);
+        }
+        var protoFeatures = Object.assign(
+          this.options ? Object.assign({}, this.options.features) : {},
+          this._inferLegacyProtoFeatures(edition)
+        );
+        if (this._edition) {
+          if (edition === "proto2") {
+            defaults = Object.assign({}, proto2Defaults);
+          } else if (edition === "proto3") {
+            defaults = Object.assign({}, proto3Defaults);
+          } else if (edition === "2023") {
+            defaults = Object.assign({}, editions2023Defaults);
+          } else if (edition === "2024") {
+            defaults = Object.assign({}, editions2024Defaults);
+          } else {
+            throw new Error("Unknown edition: " + edition);
+          }
+          this._features = Object.assign(defaults, protoFeatures || {});
+          this._featuresResolved = true;
+          return;
+        }
+        if (this.partOf instanceof OneOf2) {
+          var lexicalParentFeaturesCopy = Object.assign({}, this.partOf._features);
+          this._features = Object.assign(lexicalParentFeaturesCopy, protoFeatures || {});
+        } else if (this.declaringField) {
+        } else if (this.parent) {
+          var parentFeaturesCopy = Object.assign({}, this.parent._features);
+          this._features = Object.assign(parentFeaturesCopy, protoFeatures || {});
+        } else {
+          throw new Error("Unable to find a parent for " + this.fullName);
+        }
+        if (this.extensionField) {
+          this.extensionField._features = this._features;
+        }
+        this._featuresResolved = true;
+      };
+      ReflectionObject2.prototype._inferLegacyProtoFeatures = function _inferLegacyProtoFeatures() {
+        return {};
+      };
       ReflectionObject2.prototype.getOption = function getOption(name) {
         if (this.options)
           return this.options[name];
         return void 0;
       };
       ReflectionObject2.prototype.setOption = function setOption(name, value, ifNotSet) {
-        if (!ifNotSet || !this.options || this.options[name] === void 0)
-          (this.options || (this.options = {}))[name] = value;
+        if (!this.options)
+          this.options = {};
+        if (/^features\\./.test(name)) {
+          util.setProperty(this.options, name, value, ifNotSet);
+        } else if (!ifNotSet || this.options[name] === void 0) {
+          if (this.getOption(name) !== value) this.resolved = false;
+          this.options[name] = value;
+        }
         return this;
       };
       ReflectionObject2.prototype.setParsedOption = function setParsedOption(name, value, propName) {
@@ -4092,6 +4330,12 @@ const MODULES = `
           return className + " " + fullName;
         return className;
       };
+      ReflectionObject2.prototype._editionToJSON = function _editionToJSON() {
+        if (!this._edition || this._edition === "proto3") {
+          return void 0;
+        }
+        return this._edition;
+      };
       ReflectionObject2._configure = function(Root_) {
         Root4 = Root_;
       };
@@ -4117,6 +4361,7 @@ const MODULES = `
         this.comment = comment;
         this.comments = comments || {};
         this.valuesOptions = valuesOptions;
+        this._valuesFeatures = {};
         this.reserved = void 0;
         if (values) {
           for (var keys = Object.keys(values), i = 0; i < keys.length; ++i)
@@ -4124,14 +4369,28 @@ const MODULES = `
               this.valuesById[this.values[keys[i]] = values[keys[i]]] = keys[i];
         }
       }
+      Enum.prototype._resolveFeatures = function _resolveFeatures(edition) {
+        edition = this._edition || edition;
+        ReflectionObject2.prototype._resolveFeatures.call(this, edition);
+        Object.keys(this.values).forEach((key) => {
+          var parentFeaturesCopy = Object.assign({}, this._features);
+          this._valuesFeatures[key] = Object.assign(parentFeaturesCopy, this.valuesOptions && this.valuesOptions[key] && this.valuesOptions[key].features);
+        });
+        return this;
+      };
       Enum.fromJSON = function fromJSON(name, json) {
         var enm = new Enum(name, json.values, json.options, json.comment, json.comments);
         enm.reserved = json.reserved;
+        if (json.edition)
+          enm._edition = json.edition;
+        enm._defaultEdition = "proto3";
         return enm;
       };
       Enum.prototype.toJSON = function toJSON(toJSONOptions) {
         var keepComments = toJSONOptions ? Boolean(toJSONOptions.keepComments) : false;
         return util.toObject([
+          "edition",
+          this._editionToJSON(),
           "options",
           this.options,
           "valuesOptions",
@@ -4203,7 +4462,7 @@ const MODULES = `
       var types = require_types();
       var util = require_util();
       function genTypePartial(gen, field, fieldIndex, ref) {
-        return field.resolvedType.group ? gen("types[%i].encode(%s,w.uint32(%i)).uint32(%i)", fieldIndex, ref, (field.id << 3 | 3) >>> 0, (field.id << 3 | 4) >>> 0) : gen("types[%i].encode(%s,w.uint32(%i).fork()).ldelim()", fieldIndex, ref, (field.id << 3 | 2) >>> 0);
+        return field.delimited ? gen("types[%i].encode(%s,w.uint32(%i)).uint32(%i)", fieldIndex, ref, (field.id << 3 | 3) >>> 0, (field.id << 3 | 4) >>> 0) : gen("types[%i].encode(%s,w.uint32(%i).fork()).ldelim()", fieldIndex, ref, (field.id << 3 | 2) >>> 0);
       }
       function encoder(mtype) {
         var gen = util.codegen(["m", "w"], mtype.name + "\$encode")("if(!w)")("w=Writer.create()");
@@ -4360,21 +4619,21 @@ const MODULES = `
       "use strict";
       init_tampermonkey();
       Object.defineProperty(exports2, "__esModule", { value: true });
-      var InsertDataQuill = /* @__PURE__ */ function() {
+      var InsertDataQuill = /* @__PURE__ */ (function() {
         function InsertDataQuill2(type, value) {
           this.type = type;
           this.value = value;
         }
         return InsertDataQuill2;
-      }();
+      })();
       exports2.InsertDataQuill = InsertDataQuill;
-      var InsertDataCustom = /* @__PURE__ */ function() {
+      var InsertDataCustom = /* @__PURE__ */ (function() {
         function InsertDataCustom2(type, value) {
           this.type = type;
           this.value = value;
         }
         return InsertDataCustom2;
-      }();
+      })();
       exports2.InsertDataCustom = InsertDataCustom;
     }
   });
@@ -4432,12 +4691,12 @@ const MODULES = `
       var freeModule = freeExports && typeof module2 == "object" && module2 && !module2.nodeType && module2;
       var moduleExports = freeModule && freeModule.exports === freeExports;
       var freeProcess = moduleExports && freeGlobal.process;
-      var nodeUtil = function() {
+      var nodeUtil = (function() {
         try {
           return freeProcess && freeProcess.binding && freeProcess.binding("util");
         } catch (e) {
         }
-      }();
+      })();
       var nodeIsTypedArray = nodeUtil && nodeUtil.isTypedArray;
       function arrayFilter(array, predicate) {
         var index = -1, length2 = array == null ? 0 : array.length, resIndex = 0, result = [];
@@ -4508,10 +4767,10 @@ const MODULES = `
       var coreJsData = root["__core-js_shared__"];
       var funcToString = funcProto.toString;
       var hasOwnProperty = objectProto.hasOwnProperty;
-      var maskSrcKey = function() {
+      var maskSrcKey = (function() {
         var uid2 = /[^.]+\$/.exec(coreJsData && coreJsData.keys && coreJsData.keys.IE_PROTO || "");
         return uid2 ? "Symbol(src)_1." + uid2 : "";
-      }();
+      })();
       var nativeObjectToString = objectProto.toString;
       var reIsNative = RegExp(
         "^" + funcToString.call(hasOwnProperty).replace(reRegExpChar, "\\\\\$&").replace(/hasOwnProperty|(function).*?(?=\\\\\\()| for .+?(?=\\\\\\])/g, "\$1.*?") + "\$"
@@ -5037,9 +5296,9 @@ const MODULES = `
       function eq(value, other) {
         return value === other || value !== value && other !== other;
       }
-      var isArguments = baseIsArguments(/* @__PURE__ */ function() {
+      var isArguments = baseIsArguments(/* @__PURE__ */ (function() {
         return arguments;
-      }()) ? baseIsArguments : function(value) {
+      })()) ? baseIsArguments : function(value) {
         return isObjectLike(value) && hasOwnProperty.call(value, "callee") && !propertyIsEnumerable.call(value, "callee");
       };
       var isArray2 = Array.isArray;
@@ -5093,7 +5352,7 @@ const MODULES = `
       var value_types_1 = require_value_types();
       var InsertData_1 = require_InsertData();
       var lodash_isequal_1 = __importDefault(require_lodash());
-      var DeltaInsertOp = function() {
+      var DeltaInsertOp = (function() {
         function DeltaInsertOp2(insertVal, attrs) {
           if (typeof insertVal === "string") {
             insertVal = new InsertData_1.InsertDataQuill(value_types_1.DataType.Text, insertVal + "");
@@ -5199,7 +5458,7 @@ const MODULES = `
           return this.isText() && !!this.attributes.mentions;
         };
         return DeltaInsertOp2;
-      }();
+      })();
       exports2.DeltaInsertOp = DeltaInsertOp;
     }
   });
@@ -5211,7 +5470,7 @@ const MODULES = `
       init_tampermonkey();
       Object.defineProperty(exports2, "__esModule", { value: true });
       var OpAttributeSanitizer_1 = require_OpAttributeSanitizer();
-      var MentionSanitizer = function() {
+      var MentionSanitizer = (function() {
         function MentionSanitizer2() {
         }
         MentionSanitizer2.sanitize = function(dirtyObj, sanitizeOptions) {
@@ -5249,7 +5508,7 @@ const MODULES = `
           return ["_self", "_blank", "_parent", "_top"].indexOf(target) > -1;
         };
         return MentionSanitizer2;
-      }();
+      })();
       exports2.MentionSanitizer = MentionSanitizer;
     }
   });
@@ -5459,7 +5718,7 @@ const MODULES = `
       var url = __importStar(require_url());
       var funcs_html_1 = require_funcs_html();
       var array_1 = require_array();
-      var OpAttributeSanitizer = function() {
+      var OpAttributeSanitizer = (function() {
         function OpAttributeSanitizer2() {
         }
         OpAttributeSanitizer2.sanitize = function(dirtyAttrs, sanitizeOptions) {
@@ -5610,7 +5869,7 @@ const MODULES = `
           return !!lang.match(/^[a-zA-Z\\s\\-\\\\\\/\\+]{1,50}\$/i);
         };
         return OpAttributeSanitizer2;
-      }();
+      })();
       exports2.OpAttributeSanitizer = OpAttributeSanitizer;
     }
   });
@@ -5697,7 +5956,7 @@ const MODULES = `
       var value_types_1 = require_value_types();
       var str = __importStar(require_string());
       var obj = __importStar(require_object2());
-      var InsertOpDenormalizer = function() {
+      var InsertOpDenormalizer = (function() {
         function InsertOpDenormalizer2() {
         }
         InsertOpDenormalizer2.denormalize = function(op) {
@@ -5722,7 +5981,7 @@ const MODULES = `
           });
         };
         return InsertOpDenormalizer2;
-      }();
+      })();
       exports2.InsertOpDenormalizer = InsertOpDenormalizer;
     }
   });
@@ -5738,7 +5997,7 @@ const MODULES = `
       var InsertData_1 = require_InsertData();
       var OpAttributeSanitizer_1 = require_OpAttributeSanitizer();
       var InsertOpDenormalizer_1 = require_InsertOpDenormalizer();
-      var InsertOpsConverter = function() {
+      var InsertOpsConverter = (function() {
         function InsertOpsConverter2() {
         }
         InsertOpsConverter2.convert = function(deltaOps, options) {
@@ -5776,7 +6035,7 @@ const MODULES = `
           return value_types_1.DataType.Image in insertPropVal ? new InsertData_1.InsertDataQuill(value_types_1.DataType.Image, OpAttributeSanitizer_1.OpAttributeSanitizer.sanitizeLinkUsingOptions(insertPropVal[value_types_1.DataType.Image] + "", sanitizeOptions)) : value_types_1.DataType.Video in insertPropVal ? new InsertData_1.InsertDataQuill(value_types_1.DataType.Video, OpAttributeSanitizer_1.OpAttributeSanitizer.sanitizeLinkUsingOptions(insertPropVal[value_types_1.DataType.Video] + "", sanitizeOptions)) : value_types_1.DataType.Formula in insertPropVal ? new InsertData_1.InsertDataQuill(value_types_1.DataType.Formula, insertPropVal[value_types_1.DataType.Formula]) : new InsertData_1.InsertDataCustom(keys[0], insertPropVal[keys[0]]);
         };
         return InsertOpsConverter2;
-      }();
+      })();
       exports2.InsertOpsConverter = InsertOpsConverter;
     }
   });
@@ -5827,7 +6086,7 @@ const MODULES = `
           }
         }
       };
-      var OpToHtmlConverter = function() {
+      var OpToHtmlConverter = (function() {
         function OpToHtmlConverter2(op, options) {
           this.op = op;
           this.options = obj.assign({}, {
@@ -6093,7 +6352,7 @@ const MODULES = `
           });
         };
         return OpToHtmlConverter2;
-      }();
+      })();
       exports2.OpToHtmlConverter = OpToHtmlConverter;
     }
   });
@@ -6103,7 +6362,7 @@ const MODULES = `
     "node_modules/quill-delta-to-html-cb/dist/commonjs/grouper/group-types.js"(exports2) {
       "use strict";
       init_tampermonkey();
-      var __extends = exports2 && exports2.__extends || function() {
+      var __extends = exports2 && exports2.__extends || (function() {
         var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d, b) {
           d.__proto__ = b;
         } || function(d, b) {
@@ -6116,53 +6375,53 @@ const MODULES = `
           }
           d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
         };
-      }();
+      })();
       Object.defineProperty(exports2, "__esModule", { value: true });
-      var InlineGroup = /* @__PURE__ */ function() {
+      var InlineGroup = /* @__PURE__ */ (function() {
         function InlineGroup2(ops) {
           this.ops = ops;
         }
         return InlineGroup2;
-      }();
+      })();
       exports2.InlineGroup = InlineGroup;
-      var SingleItem = /* @__PURE__ */ function() {
+      var SingleItem = /* @__PURE__ */ (function() {
         function SingleItem2(op) {
           this.op = op;
         }
         return SingleItem2;
-      }();
-      var VideoItem = function(_super) {
+      })();
+      var VideoItem = (function(_super) {
         __extends(VideoItem2, _super);
         function VideoItem2() {
           return _super !== null && _super.apply(this, arguments) || this;
         }
         return VideoItem2;
-      }(SingleItem);
+      })(SingleItem);
       exports2.VideoItem = VideoItem;
-      var BlotBlock = function(_super) {
+      var BlotBlock = (function(_super) {
         __extends(BlotBlock2, _super);
         function BlotBlock2() {
           return _super !== null && _super.apply(this, arguments) || this;
         }
         return BlotBlock2;
-      }(SingleItem);
+      })(SingleItem);
       exports2.BlotBlock = BlotBlock;
-      var BlockGroup = /* @__PURE__ */ function() {
+      var BlockGroup = /* @__PURE__ */ (function() {
         function BlockGroup2(op, ops) {
           this.op = op;
           this.ops = ops;
         }
         return BlockGroup2;
-      }();
+      })();
       exports2.BlockGroup = BlockGroup;
-      var ListGroup = /* @__PURE__ */ function() {
+      var ListGroup = /* @__PURE__ */ (function() {
         function ListGroup2(items) {
           this.items = items;
         }
         return ListGroup2;
-      }();
+      })();
       exports2.ListGroup = ListGroup;
-      var ListItem = /* @__PURE__ */ function() {
+      var ListItem = /* @__PURE__ */ (function() {
         function ListItem2(item, innerList) {
           if (innerList === void 0) {
             innerList = null;
@@ -6171,28 +6430,28 @@ const MODULES = `
           this.innerList = innerList;
         }
         return ListItem2;
-      }();
+      })();
       exports2.ListItem = ListItem;
-      var TableGroup = /* @__PURE__ */ function() {
+      var TableGroup = /* @__PURE__ */ (function() {
         function TableGroup2(rows) {
           this.rows = rows;
         }
         return TableGroup2;
-      }();
+      })();
       exports2.TableGroup = TableGroup;
-      var TableRow = /* @__PURE__ */ function() {
+      var TableRow = /* @__PURE__ */ (function() {
         function TableRow2(cells) {
           this.cells = cells;
         }
         return TableRow2;
-      }();
+      })();
       exports2.TableRow = TableRow;
-      var TableCell = /* @__PURE__ */ function() {
+      var TableCell = /* @__PURE__ */ (function() {
         function TableCell2(item) {
           this.item = item;
         }
         return TableCell2;
-      }();
+      })();
       exports2.TableCell = TableCell;
     }
   });
@@ -6206,7 +6465,7 @@ const MODULES = `
       var DeltaInsertOp_1 = require_DeltaInsertOp();
       var array_1 = require_array();
       var group_types_1 = require_group_types();
-      var Grouper = function() {
+      var Grouper = (function() {
         function Grouper2() {
         }
         Grouper2.pairOpsWithTheirBlock = function(ops) {
@@ -6286,7 +6545,7 @@ const MODULES = `
           return g.op.isCustomTextBlock() && gOther.op.isCustomTextBlock() && g.op.hasSameAttr(gOther.op);
         };
         return Grouper2;
-      }();
+      })();
       exports2.Grouper = Grouper;
     }
   });
@@ -6299,7 +6558,7 @@ const MODULES = `
       Object.defineProperty(exports2, "__esModule", { value: true });
       var group_types_1 = require_group_types();
       var array_1 = require_array();
-      var ListNester = function() {
+      var ListNester = (function() {
         function ListNester2() {
         }
         ListNester2.prototype.nest = function(groups) {
@@ -6388,7 +6647,7 @@ const MODULES = `
           return false;
         };
         return ListNester2;
-      }();
+      })();
       exports2.ListNester = ListNester;
     }
   });
@@ -6401,7 +6660,7 @@ const MODULES = `
       Object.defineProperty(exports2, "__esModule", { value: true });
       var group_types_1 = require_group_types();
       var array_1 = require_array();
-      var TableGrouper = function() {
+      var TableGrouper = (function() {
         function TableGrouper2() {
         }
         TableGrouper2.prototype.group = function(groups) {
@@ -6434,7 +6693,7 @@ const MODULES = `
           });
         };
         return TableGrouper2;
-      }();
+      })();
       exports2.TableGrouper = TableGrouper;
     }
   });
@@ -6464,7 +6723,7 @@ const MODULES = `
       var value_types_1 = require_value_types();
       var TableGrouper_1 = require_TableGrouper();
       var BrTag = "<br/>";
-      var QuillDeltaToHtmlConverter2 = function() {
+      var QuillDeltaToHtmlConverter2 = (function() {
         function QuillDeltaToHtmlConverter3(deltaOps, options) {
           this.rawDeltaOps = [];
           this.callbacks = {};
@@ -6673,7 +6932,7 @@ const MODULES = `
           this.callbacks["renderCustomOp_cb"] = cb;
         };
         return QuillDeltaToHtmlConverter3;
-      }();
+      })();
       exports2.QuillDeltaToHtmlConverter = QuillDeltaToHtmlConverter2;
     }
   });
@@ -11831,7 +12090,7 @@ const MODULES = `
   }
   var x;
   var i;
-  var hMap = function(cd, mb, r) {
+  var hMap = (function(cd, mb, r) {
     var s = cd.length;
     var i = 0;
     var l = new u16(mb);
@@ -11866,7 +12125,7 @@ const MODULES = `
       }
     }
     return co;
-  };
+  });
   var flt = new u8(288);
   for (i = 0; i < 144; ++i)
     flt[i] = 8;
@@ -12382,7 +12641,7 @@ const MODULES = `
     }
     return slc(o, 0, pre + shft(pos) + post);
   };
-  var crct = /* @__PURE__ */ function() {
+  var crct = /* @__PURE__ */ (function() {
     var t = new Int32Array(256);
     for (var i = 0; i < 256; ++i) {
       var c = i, k = 9;
@@ -12391,7 +12650,7 @@ const MODULES = `
       t[i] = c;
     }
     return t;
-  }();
+  })();
   var crc = function() {
     var c = -1;
     return {
@@ -28355,7 +28614,16 @@ const MODULES = `
           try {
             const manifest = (_a3 = window.player) == null ? void 0 : _a3.getManifest();
             debug("播放器实例已存在，可能脚本注入过慢！", manifest);
-            manifest && this.createPlayer(manifest);
+            if (manifest) {
+              if (!manifest.bvid || manifest.bvid === "undefined") {
+                const bvidMatch = location.pathname.match(/\\/(BV[\\w]+)/i);
+                if (bvidMatch) {
+                  debug("从URL兜底补全bvid：", bvidMatch[1]);
+                  manifest.bvid = bvidMatch[1];
+                }
+              }
+              this.createPlayer(manifest);
+            }
           } catch (e) {
             debug("读取播放器启动参数失败！", e);
           }
@@ -28409,7 +28677,7 @@ const MODULES = `
     /** 旧版播放器已启用 */
     isEmbedPlayer = false;
     /** 旧版播放器正常引导 */
-    EmbedPlayer(loadPlayer, isEmbedPlayer = true) {
+    async EmbedPlayer(loadPlayer, isEmbedPlayer = true) {
       var _a3;
       this.nanoPermit = () => {
       };
@@ -28418,8 +28686,13 @@ const MODULES = `
       if ((_a3 = window.player) == null ? void 0 : _a3.disconnect) {
         try {
           debug("爆破新版播放器!");
-          window.player.disconnect();
+          await window.player.disconnect();
           this.nanoPlayer || (this.nanoPlayer = window.player);
+          const container = document.getElementById("bilibili-player") || document.getElementById("bofqi");
+          if (container) {
+            debug("清空播放器容器，准备挂载旧版播放器");
+            container.innerHTML = "";
+          }
         } catch {
         }
       }
