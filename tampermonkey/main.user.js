@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili 旧播放页
 // @namespace    MotooriKashin
-// @version      10.8.9-a31dc13f64b0b5a3afd202adb18cdd8cdd0dcc36
+// @version      10.9.0-a31dc13f64b0b5a3afd202adb18cdd8cdd0dcc36
 // @description  恢复Bilibili旧版页面，为了那些念旧的人。
 // @author       MotooriKashin, wly5556
 // @homepage     https://github.com/MotooriKashin/Bilibili-Old
@@ -7826,7 +7826,7 @@ const MODULES = `
     static D_API_VC = "api.vc.bilibili.com";
     static WEBSHOW_LOCS = _URLS.P_AUTO + _URLS.D_API + "/x/web-show/res/locs";
     static INDEX_TOP_RCMD = _URLS.P_AUTO + _URLS.D_API + "/x/web-interface/index/top/rcmd";
-    static PAGE_HEADER = _URLS.P_AUTO + _URLS.D_API + "/x/web-show/page/header";
+    static PAGE_HEADER = _URLS.P_AUTO + _URLS.D_API + "/x/web-show/page/header/v2";
     static SEASON_RANK_LIST = _URLS.P_AUTO + _URLS.D_API + "/pgc/season/rank/web/list";
     static VIDEO = _URLS.P_AUTO + _URLS.D_STATIC_S + "/js/video.min.js";
     static JQUERY = _URLS.P_AUTO + _URLS.D_STATIC_S + "/js/jquery.min.js";

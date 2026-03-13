@@ -31,7 +31,7 @@ export class URLS {
 
     static readonly WEBSHOW_LOCS = URLS.P_AUTO + URLS.D_API + '/x/web-show/res/locs';
     static readonly INDEX_TOP_RCMD = URLS.P_AUTO + URLS.D_API + '/x/web-interface/index/top/rcmd';
-    static readonly PAGE_HEADER = URLS.P_AUTO + URLS.D_API + '/x/web-show/page/header';
+    static readonly PAGE_HEADER = URLS.P_AUTO + URLS.D_API + '/x/web-show/page/header/v2';
     static readonly SEASON_RANK_LIST = URLS.P_AUTO + URLS.D_API + '/pgc/season/rank/web/list';
     static readonly VIDEO = URLS.P_AUTO + URLS.D_STATIC_S + '/js/video.min.js';
     static readonly JQUERY = URLS.P_AUTO + URLS.D_STATIC_S + '/js/jquery.min.js';
