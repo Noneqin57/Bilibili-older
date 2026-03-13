@@ -272,6 +272,11 @@ export class PageAV extends Page {
         toview.pid = -1 // 隐藏播单号
         toview.list = season.sections.reduce((s: any[], d: any) => {
             d.episodes.forEach((d: any) => {
+                // 使用顶层 pages 字段拿完整多P列表，回退到 [d.page]
+                // 这样播单里的多P视频才能正确展开所有分P，手动切P时合集上下文不会丢失
+                const pages = (Array.isArray(d.pages) && d.pages.length > 0)
+                    ? d.pages
+                    : [d.page];
                 s.push({
                     aid: d.aid,
                     attribute: d.attribute,
@@ -283,7 +288,7 @@ export class PageAV extends Page {
                     duration: d.arc.duration,
                     dynamic: d.arc.dynamic,
                     owner,
-                    pages: [d.page],
+                    pages,
                     pic: d.arc.pic,
                     pubdate: d.arc.pubdate,
                     rights: d.arc.rights,
@@ -292,7 +297,7 @@ export class PageAV extends Page {
                     tid: d.arc.type_id,
                     title: d.title,
                     tname: '',
-                    videos: 1,
+                    videos: pages.length,
                 })
             });
             return s;
@@ -304,8 +309,8 @@ export class PageAV extends Page {
             args[2] = objUrl('', obj);
         });
         propertyHook(window, 'callAppointPart', this.callAppointPart);
-        // 修正播单列表高度
-        addCss('.bilibili-player .bilibili-player-auxiliary-area .bilibili-player-playlist .bilibili-player-playlist-playlist {height: calc(100% - 45px);}.bilibili-player-playlist-nav-title,.bilibili-player-playlist-nav-ownername{display: none;}');
+        // 修正播单列表高度；合集模式下隐藏页面自带的分P列表（由播单面板接管）
+        addCss('.bilibili-player .bilibili-player-auxiliary-area .bilibili-player-playlist .bilibili-player-playlist-playlist {height: calc(100% - 45px);}.bilibili-player-playlist-nav-title,.bilibili-player-playlist-nav-ownername{display: none;}#v_multipage{display:none!important;}');
     }
 
     /** hook合集切p回调 */
@@ -330,7 +335,9 @@ export class PageAV extends Page {
                     toast.error('更新视频信息失败', e)();
                 })
                 .finally(() => {
-                    history.pushState(history.state, '', `/video/av${state.aid}`);
+                    // 切换合集视频时保留p参数，避免刷新后分P信息丢失
+                    const pParam = p && p > 1 ? `/?p=${p}` : '';
+                    history.pushState(history.state, '', `/video/av${state.aid}${pParam}`);
                 });
         }
     }
