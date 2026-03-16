@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili 旧播放页
 // @namespace    MotooriKashin
-// @version      10.9.0-b6b99507c9cee6573df283548a431f0166b1d138
+// @version      10.9.1-b6b99507c9cee6573df283548a431f0166b1d138
 // @description  恢复Bilibili旧版页面，为了那些念旧的人。
 // @author       MotooriKashin, wly5556
 // @homepage     https://github.com/MotooriKashin/Bilibili-Old
@@ -28588,7 +28588,7 @@ const MODULES = `
     playLoaded = false;
     constructor() {
       propertyHook.modify(window, "nano", (v) => {
-        var _a3;
+        var _a3, _b2, _c;
         debug("捕获新版播放器！");
         const createPlayer = v.createPlayer;
         const that = this;
@@ -28614,6 +28614,23 @@ const MODULES = `
           try {
             const manifest = (_a3 = window.player) == null ? void 0 : _a3.getManifest();
             debug("播放器实例已存在，可能脚本注入过慢！", manifest);
+            try {
+              const win = window;
+              const blockedUrl = (_c = (_b2 = win.__INITIAL_STATE__) == null ? void 0 : _b2.insertScripts) == null ? void 0 : _c[0];
+              if (blockedUrl && typeof win.loadScript === "function") {
+                const origLoadScript = win.loadScript;
+                win.loadScript = function(url, ...args) {
+                  if (url === blockedUrl) {
+                    debug("成功阻止播放器二次加载！");
+                    return;
+                  }
+                  return origLoadScript.call(this, url, ...args);
+                };
+                debug("准备阻止播放器二次加载……");
+              }
+            } catch (e) {
+              debug("阻止失败……页面即将崩坏！请刷新缓解", e);
+            }
             if (manifest) {
               if (!manifest.bvid || manifest.bvid === "undefined") {
                 const bvidMatch = location.pathname.match(/\\/(BV[\\w]+)/i);
@@ -28678,7 +28695,7 @@ const MODULES = `
     isEmbedPlayer = false;
     /** 旧版播放器正常引导 */
     async EmbedPlayer(loadPlayer, isEmbedPlayer = true) {
-      var _a3;
+      var _a3, _b2, _c;
       this.nanoPermit = () => {
       };
       this.isEmbedPlayer = isEmbedPlayer;
@@ -28695,6 +28712,21 @@ const MODULES = `
           }
         } catch {
         }
+      }
+      try {
+        const win = window;
+        const blockedUrl = (_c = (_b2 = win.__INITIAL_STATE__) == null ? void 0 : _b2.insertScripts) == null ? void 0 : _c[0];
+        if (blockedUrl && typeof win.loadScript === "function") {
+          const origLoadScript = win.loadScript;
+          win.loadScript = (url, ...args) => {
+            if (url === blockedUrl) {
+              debug("成功阻止播放器二次加载！", url);
+              return;
+            }
+            return origLoadScript(url, ...args);
+          };
+        }
+      } catch {
       }
       this.switchVideo();
       this.simpleChinese();

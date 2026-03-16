@@ -73,6 +73,24 @@ class Player {
                 try {
                     const manifest = (<any>window).player?.getManifest();
                     debug('播放器实例已存在，可能脚本注入过慢！', manifest);
+                    // 尝试阻止新版播放器的二次加载，避免页面崩坏
+                    try {
+                        const win = (<any>window);
+                        const blockedUrl = win.__INITIAL_STATE__?.insertScripts?.[0];
+                        if (blockedUrl && typeof win.loadScript === 'function') {
+                            const origLoadScript = win.loadScript;
+                            win.loadScript = function(url: string, ...args: any[]) {
+                                if (url === blockedUrl) {
+                                    debug('成功阻止播放器二次加载！');
+                                    return;
+                                }
+                                return origLoadScript.call(this, url, ...args);
+                            };
+                            debug('准备阻止播放器二次加载……');
+                        }
+                    } catch (e) {
+                        debug('阻止失败……页面即将崩坏！请刷新缓解', e);
+                    }
                     if (manifest) {
                         // bvid 可能在注入过慢时未就绪，从 URL 兜底补全
                         if (!manifest.bvid || manifest.bvid === 'undefined') {
@@ -160,6 +178,21 @@ class Player {
                 }
             } catch { }
         }
+        // 兜底处理
+        try {
+            const win = (<any>window);
+            const blockedUrl = win.__INITIAL_STATE__?.insertScripts?.[0];
+            if (blockedUrl && typeof win.loadScript === 'function') {
+                const origLoadScript = win.loadScript;
+                win.loadScript = (url: string, ...args: any[]) => {
+                    if (url === blockedUrl) {
+                        debug('成功阻止播放器二次加载！', url);
+                        return;
+                    }
+                    return origLoadScript(url, ...args);
+                };
+            }
+        } catch { }
         this.switchVideo();
         this.simpleChinese();
     }
