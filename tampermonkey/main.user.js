@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili 旧播放页
 // @namespace    MotooriKashin
-// @version      10.9.1-b6b99507c9cee6573df283548a431f0166b1d138
+// @version      10.9.2-b6b99507c9cee6573df283548a431f0166b1d138
 // @description  恢复Bilibili旧版页面，为了那些念旧的人。
 // @author       MotooriKashin, wly5556
 // @homepage     https://github.com/MotooriKashin/Bilibili-Old
