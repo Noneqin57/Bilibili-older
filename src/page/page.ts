@@ -28,6 +28,10 @@ export abstract class Page {
     protected updateDom() {
         // 备份标题
         const title = document.title;
+        // 清理新版页面注入的 INITIAL_STATE，避免旧版脚本读取到新版结构
+        try {
+            Reflect.deleteProperty(window, '__INITIAL_STATE__');
+        } catch (e) { }
         // 删除webpackJsonp残留
         this.webpackJsonp || Reflect.deleteProperty(window, 'webpackJsonp');
         // 刷新DOM
