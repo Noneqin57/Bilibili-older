@@ -10,6 +10,8 @@ export abstract class Page {
     protected initilized = false;
     /** 禁止清除webpackJsonp */
     protected webpackJsonp = false;
+    /** 保留__INITIAL_STATE__（仅特定页面需要） */
+    protected keepInitialState = false;
     /**
      * @param html 页面框架
      */
@@ -30,7 +32,9 @@ export abstract class Page {
         const title = document.title;
         // 清理新版页面注入的 INITIAL_STATE，避免旧版脚本读取到新版结构
         try {
-            Reflect.deleteProperty(window, '__INITIAL_STATE__');
+            if (!this.keepInitialState) {
+                Reflect.deleteProperty(window, '__INITIAL_STATE__');
+            }
         } catch (e) { }
         // 删除webpackJsonp残留
         this.webpackJsonp || Reflect.deleteProperty(window, 'webpackJsonp');

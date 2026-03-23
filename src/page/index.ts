@@ -42,6 +42,7 @@ const __INITIAL_STATE__ = {
 export class PageIndex extends Page {
     constructor() {
         super(html);
+        this.keepInitialState = true;
         this.avcheck();
         (<any>window).__INITIAL_STATE__ = __INITIAL_STATE__;
         this.locsData();

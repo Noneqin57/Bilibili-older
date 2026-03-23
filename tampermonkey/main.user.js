@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili 旧播放页
 // @namespace    MotooriKashin
-// @version      10.9.3-1bac2f0481bfc3f249f779db08a3ec179f61edae
+// @version      10.9.4-1bac2f0481bfc3f249f779db08a3ec179f61edae
 // @description  恢复Bilibili旧版页面，为了那些念旧的人。
 // @author       MotooriKashin, wly5556
 // @homepage     https://github.com/MotooriKashin/Bilibili-Old
@@ -25031,6 +25031,8 @@ const MODULES = `
     initilized = false;
     /** 禁止清除webpackJsonp */
     webpackJsonp = false;
+    /** 保留__INITIAL_STATE__（仅特定页面需要） */
+    keepInitialState = false;
     /**
      * @param html 页面框架
      */
@@ -25049,7 +25051,9 @@ const MODULES = `
     updateDom() {
       const title = document.title;
       try {
-        Reflect.deleteProperty(window, "__INITIAL_STATE__");
+        if (!this.keepInitialState) {
+          Reflect.deleteProperty(window, "__INITIAL_STATE__");
+        }
       } catch (e) {
       }
       this.webpackJsonp || Reflect.deleteProperty(window, "webpackJsonp");
@@ -25086,6 +25090,7 @@ const MODULES = `
   var PageIndex = class extends Page {
     constructor() {
       super(html_default);
+      this.keepInitialState = true;
       this.avcheck();
       window.__INITIAL_STATE__ = __INITIAL_STATE__;
       this.locsData();
