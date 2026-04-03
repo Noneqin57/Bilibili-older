@@ -88,6 +88,7 @@ export class PageList extends Page {
         super(html);
 
         this.route = urlObj(location.href);
+        this.isFromList = /\/list\//.test(location.pathname); 
         this.like = new Like();
 
         // 解析列表信息
@@ -175,7 +176,7 @@ export class PageList extends Page {
         }
     }
 
-    protected extractAid() {
+    protected extractAid() {    
         if (this.route.aid && Number(this.route.aid)) {
             this.aid = Number(this.route.aid);
         } else if (this.route.bvid) {
@@ -183,9 +184,6 @@ export class PageList extends Page {
         } else if (this.route.oid && Number(this.route.oid)) {
             this.aid = Number(this.route.oid);
         }
-
-        // 检测是否来自列表页面（有列表相关参数）
-        this.isFromList = !!(this.route.oid || this.route.sort_field || this.route.tid || this.route.business || this.route.sid);
 
         // 旧版AV页需要 /video/av{aid} 格式的URL才能正确初始化
         // 播放器加载完成后会自动改成列表格式URL
@@ -425,7 +423,7 @@ export class PageList extends Page {
      * 格式：
      * - 收藏夹：/list/ml{id}?oid={aid}
      * - UP主投稿：/list/{uid}?oid={aid}
-     * - UP主series/合集：/list/{uid}?sid={sid}&oid={aid}
+     * - UP主播放列表：/list/{uid}?sid={sid}&oid={aid}
      */
     protected updateListUrl(aid: number) {
         if (!this.isFromList || !aid) return;

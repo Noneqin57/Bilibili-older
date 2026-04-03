@@ -56,7 +56,6 @@ user.addCallback(status => {
                 status.index && new PageIndex();
             }
         }
-        // /list/ 页面：UP主投稿列表"播放全部"（/list/{uid}）和收藏夹"播放全部"（/list/ml{id}）
         // 统一重写为旧版AV页 + 播单数据注入，替代原先的播单模拟方案
         if (status.playlist && /\/list\/(ml)?\d/.test(location.href) && !/watchlater/.test(location.href)) {
             listHandled = true;
@@ -80,9 +79,8 @@ user.addCallback(status => {
             player.loadEmbedPlayer();
             new PageWatchlater();
         }
-        // /medialist/play/ 和旧版 /playlist/video/pl 仍走原有播单逻辑
-        // /list/ml 已由上方 PageList 处理，此处移除
-        if (!listHandled && ((status.playlist && /\/medialist\/play\//.test(location.href) && !/watchlater/.test(location.href)) || /\/playlist\/video\/pl/.test(location.href))) {
+        // 旧版 /playlist/video/pl 仍走原有播单逻辑
+        if (!listHandled && /\/playlist\/video\/pl/.test(location.href)) {
             player.loadEmbedPlayer();
             new PagePlaylist();
         }
