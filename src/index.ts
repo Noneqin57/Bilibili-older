@@ -15,6 +15,7 @@ import { player } from './core/player';
 import { PageAV } from './page/av';
 import { PageBangumi } from './page/bangumi';
 import { PageWatchlater } from './page/watchalter';
+import { PageList } from './page/list';
 import { PagePlaylist } from './page/playlist';
 import { PagePlaylistDetail } from './page/playlist-detail';
 import { PageRanking } from './page/ranking';
@@ -46,6 +47,7 @@ user.addCallback(status => {
     Comment.commentJumpUrlTitle = status.commentJumpUrlTitle;
     Comment.resolvePictures = status.commentPicture;
     if (BLOD.path[2] !== 'm.bilibili.com') {
+        let listHandled = false;
         if (BLOD.path[2] == 'www.bilibili.com' && (!BLOD.path[3] || (BLOD.path[3].startsWith('\?') || BLOD.path[3].startsWith('\#') || BLOD.path[3].startsWith('index.')))) {
             if (document.referrer.includes('blackboard/bnj2019.html')) {
                 // 拜年祭2019
@@ -54,7 +56,14 @@ user.addCallback(status => {
                 status.index && new PageIndex();
             }
         }
-        if (status.av && /(\/s)?\/video\/[AaBb][Vv]/.test(location.href)) {
+        // /list/ 页面：UP主投稿列表"播放全部"（/list/{uid}）和收藏夹"播放全部"（/list/ml{id}）
+        // 统一重写为旧版AV页 + 播单数据注入，替代原先的播单模拟方案
+        if (status.playlist && /\/list\/(ml)?\d/.test(location.href) && !/watchlater/.test(location.href)) {
+            listHandled = true;
+            player.loadEmbedPlayer();
+            new PageList();
+        }
+        if (!listHandled && status.av && /(\/s)?\/video\/[AaBb][Vv]/.test(location.href)) {
             // SEO重定向
             BLOD.path[3] === "s" && urlCleaner.updateLocation(location.href.replace("s/video", "video"));
             player.loadEmbedPlayer();
@@ -71,7 +80,9 @@ user.addCallback(status => {
             player.loadEmbedPlayer();
             new PageWatchlater();
         }
-        if ((status.playlist && (/\/medialist\/play\//.test(location.href) || /\/list\/ml\d+/.test(location.href)) && !/watchlater/.test(location.href)) || /\/playlist\/video\/pl/.test(location.href)) {
+        // /medialist/play/ 和旧版 /playlist/video/pl 仍走原有播单逻辑
+        // /list/ml 已由上方 PageList 处理，此处移除
+        if (!listHandled && ((status.playlist && /\/medialist\/play\//.test(location.href) && !/watchlater/.test(location.href)) || /\/playlist\/video\/pl/.test(location.href))) {
             player.loadEmbedPlayer();
             new PagePlaylist();
         }
