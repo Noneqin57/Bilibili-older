@@ -52,6 +52,15 @@ export class PageList extends Page {
     /** 原始URL查询参数 */
     protected route: Record<string, string | number>;
 
+    /** 是否来自列表页面 */
+    protected isFromList = false;
+
+    /** UP主uid（用于构建URL） */
+    protected upUid: number = 0;
+
+    /** Series/Collection ID（sid） */
+    protected seriesId: number = 0;
+
     /** 列表ID（uid 或 medialist 数字id） */
     protected listId: number = 0;
 
@@ -63,6 +72,9 @@ export class PageList extends Page {
 
     /** 列表数据是否已就绪 */
     protected listDataReady = false;
+
+    /** URL是否已修改为列表格式 */
+    protected urlUpdated = false;
 
     protected get aid() {
         return BLOD.aid;
@@ -122,11 +134,23 @@ export class PageList extends Page {
             this.listId = Number(mlMatch[1]);
             this.listType = 3; // 收藏夹/播单默认type
         } else {
-            // /list/{uid} — UP主投稿列表
+            // /list/{uid} — UP主投稿列表或其他列表
             const uidMatch = href.match(/\/list\/(\d+)/);
             if (uidMatch) {
+                this.upUid = Number(uidMatch[1]); // 保存UP主uid
                 this.listId = Number(uidMatch[1]);
-                this.listType = 1; // space类型
+                this.listType = 1; // 默认为space类型
+            }
+        }
+
+        // 检测 sid 参数（UP主自建视频列表/合集）
+        // 对于series，biz_id应该是uid，sid作为额外参数
+        if (this.route.sid) {
+            this.listType = 5; // space_series
+            this.seriesId = Number(this.route.sid);
+            // listId 保持为 uid（如果已解析）或用upUid
+            if (!this.listId) {
+                this.listId = this.upUid;
             }
         }
 
@@ -151,7 +175,6 @@ export class PageList extends Page {
         }
     }
 
-    /** 从URL查询参数提取当前播放视频的aid，并将URL重写为 /video/av{aid} */
     protected extractAid() {
         if (this.route.aid && Number(this.route.aid)) {
             this.aid = Number(this.route.aid);
@@ -161,9 +184,15 @@ export class PageList extends Page {
             this.aid = Number(this.route.oid);
         }
 
+        // 检测是否来自列表页面（有列表相关参数）
+        this.isFromList = !!(this.route.oid || this.route.sort_field || this.route.tid || this.route.business || this.route.sid);
+
         // 旧版AV页需要 /video/av{aid} 格式的URL才能正确初始化
+        // 播放器加载完成后会自动改成列表格式URL
         if (this.aid) {
-            urlCleaner.updateLocation(`https://www.bilibili.com/video/av${this.aid}`);
+            // 保留原始查询参数（oid, sid等列表参数需要保留）
+            const query = window.location.search;
+            urlCleaner.updateLocation(`https://www.bilibili.com/video/av${this.aid}${query}`);
         }
     }
 
@@ -182,6 +211,24 @@ export class PageList extends Page {
         player.addModifyArgument(args => {
             if (this.destroy) return;
             if (!this.listDataReady) return;
+
+            console.log('player.addModifyArgument: before updateListUrl', { 
+                urlUpdated: this.urlUpdated, 
+                isFromList: this.isFromList, 
+                aid: this.aid,
+                isMl: this.isMl,
+                listType: this.listType,
+                listId: this.listId,
+                upUid: this.upUid,
+                seriesId: this.seriesId
+            });
+
+            // 播放器第一次初始化时，修改URL为列表格式
+            if (!this.urlUpdated && this.isFromList) {
+                this.updateListUrl(this.aid);
+                this.urlUpdated = true;
+            }
+
             const obj = urlObj(`?${args[2]}`);
             obj.playlist = <any>encodeURIComponent(JSON.stringify({ code: 0, data: toview, message: "0", ttl: 1 }));
             args[2] = objUrl('', obj);
@@ -194,6 +241,7 @@ export class PageList extends Page {
         try {
             await this.fetchListData();
         } catch (e) {
+            console.error('fetchListData error:', e);
             toast.warning('获取列表数据失败，仅播放当前视频')();
         }
 
@@ -232,6 +280,11 @@ export class PageList extends Page {
             sort_field: 1,
             tid: this.route.tid || 0,
         };
+
+        // 对于series (type=5)，使用 sid 作为 biz_id
+        if (this.listType === 5 && this.seriesId) {
+            baseParams.biz_id = this.seriesId;
+        }
 
         let allMediaList: IAidInfo[] = [];
         let pn = 1;
@@ -367,6 +420,35 @@ export class PageList extends Page {
         videoInfo.toview(toview);
     }
 
+    /**
+     * 构建列表格式的URL并修改地址栏
+     * 格式：
+     * - 收藏夹：/list/ml{id}?oid={aid}
+     * - UP主投稿：/list/{uid}?oid={aid}
+     * - UP主series/合集：/list/{uid}?sid={sid}&oid={aid}
+     */
+    protected updateListUrl(aid: number) {
+        if (!this.isFromList || !aid) return;
+
+        let baseUrl: string;
+        let params: Record<string, number> = { oid: aid };
+
+        if (this.isMl) {
+            // 收藏夹：/list/ml{id}
+            baseUrl = `/list/ml${this.listId}`;
+        } else if (this.listType === 5 && this.seriesId) {
+            // UP主series/合集：/list/{uid}?sid={sid}&oid={aid}
+            baseUrl = `/list/${this.upUid}`;
+            params.sid = this.seriesId;
+        } else {
+            // UP主投稿：/list/{uid}
+            baseUrl = `/list/${this.upUid || this.listId}`;
+        }
+
+        const newUrl = objUrl(baseUrl, params);
+        history.replaceState(history.state, '', newUrl);
+    }
+
     /** 播单内切换视频回调（由播放器播单面板触发） */
     protected callAppointPart = (p: number, state: Record<'aid' | 'cid', number>) => {
         if (this.destroy) return Reflect.deleteProperty(window, 'callAppointPart');
@@ -394,9 +476,14 @@ export class PageList extends Page {
                     toast.error('更新视频信息失败', e)();
                 })
                 .finally(() => {
-                    // 切换视频时保留p参数
-                    const pParam = p && p > 1 ? `/?p=${p}` : '';
-                    history.pushState(history.state, '', `/video/av${state.aid}${pParam}`);
+                    if (this.isFromList) {
+                        // 来自列表页面：修改为列表格式的URL
+                        this.updateListUrl(state.aid);
+                    } else {
+                        // 普通播放：使用标准AV页URL
+                        const pParam = p && p > 1 ? `/?p=${p}` : '';
+                        history.pushState(history.state, '', `/video/av${state.aid}${pParam}`);
+                    }
                 });
         }
     }
