@@ -31,6 +31,9 @@ export class PageAV extends Page {
     /** 销毁标记，当前已不是av页，部分回调禁止生效 */
     protected destroy = false;
 
+    /** 当前upinfo是否处于合作UP主卡片布局 */
+    protected _isStaffMode = false;
+
     protected like: Like;
 
     protected webpackJsonp = true;
@@ -237,6 +240,7 @@ export class PageAV extends Page {
 
     /** 合作UP */
     protected staff(staff: IStaf[]) {
+        this._isStaffMode = true;
         poll(() => document.querySelector<HTMLDivElement>("#v_upinfo"), node => {
             let fl = '<span class="title">UP主列表</span><div class="up-card-box">';
             fl = staff.reduce((s, d) => {
@@ -254,6 +258,74 @@ export class PageAV extends Page {
             const box = node.querySelector<HTMLElement>('.up-card-box');
             box && new Scrollbar(box, true, false);
         });
+    }
+
+    /** 从合作UP主布局恢复为单UP主结构 */
+    protected restoreSingleUp(up: any, card: any, view: any) {
+        this._isStaffMode = false;
+        if (!up?.mid) return;
+
+        const upinfo = document.querySelector<HTMLDivElement>('#v_upinfo');
+        if (!upinfo) return;
+
+        const isVip = !!up.vip?.status;
+        const sign = up.sign || '';
+        const follower = card?.follower;
+        const archiveCount = card?.archive_count;
+        const formatNum = (n: number) => n > 10000 ? `${(n / 10000).toFixed(1)}万` : String(n);
+
+        upinfo.innerHTML = `<div class="u-face fl">
+            <a href="//space.bilibili.com/${up.mid}" target="_blank" report-id="head" class="a">
+                <img src="${up.face}@68w_68h.webp" width="68" height="68" class="up-face">
+            </a>
+        </div>
+        <div class="info">
+            <div class="user clearfix">
+                <a href="//space.bilibili.com/${up.mid}" target="_blank" report-id="name" class="name${isVip ? ' is-vip' : ''}">${up.name}</a>
+                <a href="//message.bilibili.com/#whisper/mid${up.mid}" target="_blank" report-id="message" class="message icon">发消息</a>
+            </div>
+            <div class="sign static"><span style="">${sign}</span></div>
+            <div class="number clearfix">
+                <span title="投稿数${archiveCount ?? ''}">投稿：${archiveCount != null ? formatNum(archiveCount) : '-'}</span>
+                <span title="粉丝数${follower ?? ''}">粉丝：${follower != null ? formatNum(follower) : '-'}</span>
+            </div>
+            <div class="btn followe">
+                <a report-id="follow1" class="bi-btn b-gz"><span class="gz">+ 关注</span><span class="ygz">已关注</span><span class="qxgz">取消关注</span></a>
+                <a report-id="charge" class="bi-btn b-cd elecrank-btn"><span class="cd">充电</span><span class="wtcd">为TA充电</span></a>
+            </div>
+        </div>`;
+
+        // 头像框
+        const faceLink = upinfo.querySelector<HTMLAnchorElement>('.u-face .a');
+        if (faceLink && up.pendant?.image) {
+            const pendantDiv = document.createElement('div');
+            pendantDiv.className = 'lazy-img pendant';
+            const img = document.createElement('img');
+            img.alt = '';
+            img.src = `${up.pendant.image}@112w_112h.webp`;
+            pendantDiv.appendChild(img);
+            faceLink.appendChild(pendantDiv);
+        }
+
+        // 认证角标
+        if (faceLink && up.official_verify?.type !== undefined && up.official_verify.type !== -1) {
+            const authIcon = document.createElement('i');
+            authIcon.className = up.official_verify.type === 0 ? 'auth p-auth' : 'auth b-auth';
+            authIcon.title = up.official_verify.type === 0 ? '个人认证' : '机构认证';
+            faceLink.appendChild(authIcon);
+        }
+
+        // 充电按钮
+        const chargeBtn = upinfo.querySelector<HTMLAnchorElement>('[report-id="charge"]');
+        if (chargeBtn) {
+            chargeBtn.style.display = view?.rights?.elec ? '' : 'none';
+        }
+
+        // 恢复 Vue 绑定（关注按钮依赖）
+        const upinfoVue = (<any>upinfo).__vue__;
+        if (upinfoVue?.$data) {
+            upinfoVue.$set(upinfoVue.$data, 'following', { is: false, type: 0 });
+        }
     }
 
     /** 合集（使用播单模拟） */
@@ -330,6 +402,12 @@ export class PageAV extends Page {
                     document.querySelector<any>('#v_tag').__vue__.$data.tags = d.Tags;
                     // 记录视频数据
                     videoInfo.aidDatail(d.View);
+                    // 合作UP主切换
+                    if (user.userStatus?.staff && d.View.staff) {
+                        this.staff(d.View.staff as unknown as IStaf[]);
+                    } else if (this._isStaffMode) {
+                        this.restoreSingleUp(d.Card?.card, d.Card, d.View);
+                    }
                 })
                 .catch(e => {
                     toast.error('更新视频信息失败', e)();
