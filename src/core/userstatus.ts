@@ -22,7 +22,7 @@ export const userStatus = {
     /** 充电鸣谢 */
     elecShow: true,
     /** 合作UP */
-    staff: false,
+    staff: true,
     /** bangumi */
     bangumi: true,
     /** 解除限制 */
@@ -110,7 +110,7 @@ export const userStatus = {
     /** 禁用评论跳转标题 */
     commentJumpUrlTitle: false,
     /** 合集 */
-    ugcSection: false,
+    ugcSection: true,
     /** 请求的文件类型 */
     downloadType: ['mp4'],
     /** 请求无水印源 */

@@ -4,16 +4,19 @@ let length: number;
 class Webpack {
     static load = false;
     protected backup = (<any>window).webpackJsonp;
+    protected wrapper: Function | null = null;
     constructor() {
         Webpack.load = true;
         Reflect.defineProperty(window, "webpackJsonp", {
             configurable: true,
             set: v => {
-                typeof v === 'function' && (this.backup = v);
+                // 过滤掉 get 返回的包装函数本身，防止外部脚本把包装函数赋值回来导致无限递归
+                typeof v === 'function' && v !== this.wrapper && (this.backup = v);
                 return true
             },
             get: () => {
-                return this.backup && ((chunkIds: any[], moreModules: any[], executeModules: any[]) => {
+                if (!this.backup) return this.backup;
+                this.wrapper = (chunkIds: any[], moreModules: any[], executeModules: any[]) => {
                     const len = moreModules.length ?? length;
                     if (len in arr) {
                         const obj = arr[len];
@@ -31,7 +34,8 @@ class Webpack {
                         })
                     }
                     return this.backup(chunkIds, moreModules, executeModules);
-                })
+                };
+                return this.wrapper;
             }
         });
     }

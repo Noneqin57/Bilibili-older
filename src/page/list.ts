@@ -89,12 +89,33 @@ export class PageList extends Page {
 
         this.route = urlObj(location.href);
         this.isFromList = /\/list\//.test(location.pathname); 
+        
+        // 防止热刷新死循环
+        if (/\/video\/av\d+(\?.*)?$/.test(location.pathname)) {
+            const match = location.pathname.match(/\/video\/av(\d+)/);
+            if (match) {
+                this.aid = Number(match[1]);
+            }
+            const params = new URLSearchParams(location.search);
+            if (params.get('sid')) this.route.sid = params.get('sid') || '';
+            if (params.get('business')) this.route.business = params.get('business') || '';
+            if (params.get('business_id')) this.route.business_id = params.get('business_id') || '';
+            if (params.get('tid')) this.route.tid = params.get('tid') || '';
+            if (params.get('p')) this.route.p = params.get('p') || '1';
+            this.parseListInfo();
+            if (this.route.sid || this.route.business || this.listId) {
+                this.isFromList = true;
+            }
+        } else {
+            const params = new URLSearchParams(location.search);
+            if (params.get('p')) {
+                this.route.p = params.get('p') || '1';
+            }
+            this.parseListInfo();
+            this.extractAid();
+        }
+        
         this.like = new Like();
-
-        // 解析列表信息
-        this.parseListInfo();
-        // 提取当前视频aid并更新URL
-        this.extractAid();
 
         new Comment();
         propertyHook(window, '__INITIAL_STATE__', undefined);
@@ -185,12 +206,20 @@ export class PageList extends Page {
             this.aid = Number(this.route.oid);
         }
 
-        // 旧版AV页需要 /video/av{aid} 格式的URL才能正确初始化
-        // 播放器加载完成后会自动改成列表格式URL
+
         if (this.aid) {
-            // 保留原始查询参数（oid, sid等列表参数需要保留）
-            const query = window.location.search;
-            urlCleaner.updateLocation(`https://www.bilibili.com/video/av${this.aid}${query}`);
+            const params: Record<string, string | number> = {};
+            if (this.route.sid) params.sid = this.route.sid;
+            if (this.route.business) params.business = this.route.business;
+            if (this.route.business_id) params.business_id = this.route.business_id;
+            if (this.route.tid) params.tid = this.route.tid;
+            if (this.route.p && this.route.p !== '1') {
+                params.p = this.route.p;
+            }
+            const queryString = Object.keys(params).length > 0
+                ? '?' + Object.entries(params).map(([k, v]) => `${k}=${v}`).join('&')
+                : '';
+            history.replaceState(history.state, '', `https://www.bilibili.com/video/av${this.aid}${queryString}`);
         }
     }
 
@@ -227,7 +256,11 @@ export class PageList extends Page {
                 this.urlUpdated = true;
             }
 
+            // 将分P信息注入URL，确保刷新后仍能定位到正确的分P
             const obj = urlObj(`?${args[2]}`);
+            if (this.route.p && this.route.p !== '1') {
+                obj.p = this.route.p;
+            }
             obj.playlist = <any>encodeURIComponent(JSON.stringify({ code: 0, data: toview, message: "0", ttl: 1 }));
             args[2] = objUrl('', obj);
         });
@@ -267,7 +300,7 @@ export class PageList extends Page {
         );
     }
 
-    /** 通过 medialist resource API 获取列表数据（支持分页） */
+    /** 通过 medialist resource API 获取列表数据 */
     protected async fetchListData() {
         const baseParams: Record<string, any> = {
             type: this.listType,
@@ -429,7 +462,7 @@ export class PageList extends Page {
         if (!this.isFromList || !aid) return;
 
         let baseUrl: string;
-        let params: Record<string, number> = { oid: aid };
+        let params: Record<string, string | number> = { oid: aid };
 
         if (this.isMl) {
             // 收藏夹：/list/ml{id}
@@ -441,6 +474,11 @@ export class PageList extends Page {
         } else {
             // UP主投稿：/list/{uid}
             baseUrl = `/list/${this.upUid || this.listId}`;
+        }
+
+        // 保留 p 参数（分P信息）
+        if (this.route.p && this.route.p !== '1') {
+            params.p = this.route.p;
         }
 
         const newUrl = objUrl(baseUrl, params);
@@ -475,7 +513,9 @@ export class PageList extends Page {
                 })
                 .finally(() => {
                     if (this.isFromList) {
-                        // 来自列表页面：修改为列表格式的URL
+                        // 保存当前分P到route，供updateListUrl使用
+                        this.route.p = p > 1 ? String(p) : '1';
+                        // 来自列表页面：修改为列表格式的URL，保留当前分P
                         this.updateListUrl(state.aid);
                     } else {
                         // 普通播放：使用标准AV页URL
