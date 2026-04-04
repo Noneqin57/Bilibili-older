@@ -77,6 +77,12 @@ export class PageList extends Page {
     /** URL是否已修改为列表格式 */
     protected urlUpdated = false;
 
+    /** 缓存粉丝数（供 rebuildSingleUp 使用） */
+    protected _lastFollower?: number;
+
+    /** 缓存投稿数（供 rebuildSingleUp 使用） */
+    protected _lastArchiveCount?: number;
+
     protected get aid() {
         return BLOD.aid;
     }
@@ -508,8 +514,12 @@ export class PageList extends Page {
                     } catch { }
                     // 记录视频数据
                     videoInfo.aidDatail(d.View);
-                    // 更新UP主信息（头像、昵称、签名、粉丝数、投稿数等）
-                    this.updateUpInfo(d.Card, d.View);
+                    // 更新UP主信息：合作UP主 → 覆写为合作列表，普通UP主 → 更新单个UP主信息
+                    if (user.userStatus?.staff && d.View.staff) {
+                        this.updateStaff(d.View.staff as unknown as IStaf[]);
+                    } else {
+                        this.updateUpInfo(d.Card, d.View);
+                    }
                 })
                 .catch(e => {
                     toast.error('更新视频信息失败', e)();
@@ -529,41 +539,98 @@ export class PageList extends Page {
         }
     }
 
-    // ===================================================================
-    //  UP主信息更新
-    // ===================================================================
+    /** 从合作UP主布局恢复为单UP主结构（根据 card 数据重建 DOM） */
+    protected rebuildSingleUp(upinfo: HTMLElement, up: any) {
+        const isVip = !!up.vip?.status;
+        const sign = up.sign || '';
+        const followerNum = typeof this._lastFollower === 'number' ? this._lastFollower : 0;
+        const archiveNum = typeof this._lastArchiveCount === 'number' ? this._lastArchiveCount : 0;
+        const formatNum = (n: number) => n > 10000 ? `${(n / 10000).toFixed(1)}万` : String(n);
 
-    /**
-     * 更新UP主信息（头像、昵称、签名、粉丝数、投稿数、关注状态、充电按钮等）
-     * 在播单内切换到不同UP主的视频时调用
-     * @param card apiViewDetail返回的Card字段（包含IUserInfo）
-     * @param view apiViewDetail返回的View字段（用于获取rights.elec充电开关）
-     */
+        upinfo.innerHTML = `<div class="u-face fl">
+            <a href="//space.bilibili.com/${up.mid}" target="_blank" report-id="head" class="a">
+                <img src="${up.face}@68w_68h.webp" width="68" height="68" class="up-face">
+            </a>
+        </div>
+        <div class="info">
+            <div class="user clearfix">
+                <a href="//space.bilibili.com/${up.mid}" target="_blank" report-id="name" class="name${isVip ? ' is-vip' : ''}">${up.name}</a>
+                <a href="//message.bilibili.com/#whisper/mid${up.mid}" target="_blank" report-id="message" class="message icon">发消息</a>
+            </div>
+            <div class="sign static"><span style="">${sign}</span></div>
+            <div class="number clearfix">
+                <span title="投稿数${archiveNum}">投稿：${formatNum(archiveNum)}</span>
+                <span title="粉丝数${followerNum}">粉丝：${formatNum(followerNum)}</span>
+            </div>
+            <div class="btn followe">
+                <a report-id="follow1" class="bi-btn b-gz"><span class="gz">+ 关注</span><span class="ygz">已关注</span><span class="qxgz">取消关注</span></a>
+                <a report-id="charge" class="bi-btn b-cd elecrank-btn"><span class="cd">充电</span><span class="wtcd">为TA充电</span></a>
+            </div>
+        </div>`;
+
+        // 重建后设置 Vue 数据（关注按钮依赖 Vue）
+        const upinfoVue = (<any>upinfo).__vue__;
+        if (upinfoVue?.$data) {
+            upinfoVue.$set(upinfoVue.$data, 'following', { is: false, type: 0 });
+        }
+    }
+
+    /** 合作UP主 — 将 #v_upinfo 覆写为合作UP主卡片列表 */
+    protected updateStaff(staff: IStaf[]) {
+        const upinfo = document.querySelector<HTMLDivElement>('#v_upinfo');
+        if (!upinfo) return;
+
+        let html = '<span class="title">UP主列表</span><div class="up-card-box">';
+        html = staff.reduce((s, d) => {
+            return s + `<div class="up-card">
+                <a href="//space.bilibili.com/${d.mid}" data-usercard-mid="${d.mid}" target="_blank" class="avatar">
+                <img src="${d.face}@48w_48h.webp" /><!---->
+                <span class="info-tag">${d.title}</span><!----></a>
+                <div class="avatar">
+                <a href="//space.bilibili.com/${d.mid}" data-usercard-mid="${d.mid}" target="_blank" class="${(d.vip && d.vip.status) ? 'name-text is-vip' : 'name-text'}">${d.name}</a>
+                </div></div>`;
+        }, html) + `</div>`;
+        upinfo.innerHTML = html;
+        addCss(cssUplist, "up-list");
+        const box = upinfo.querySelector<HTMLElement>('.up-card-box');
+        box && new Scrollbar(box, true, false);
+    }
+
+    //  UP主信息更新
     protected updateUpInfo(card: any, view?: any) {
         if (!card?.card) return;
 
-        const up = card.card; // IUserInfo
+        const up = card.card; 
         const follower = card.follower;
         const archiveCount = card.archive_count;
-        const following = card.following; // boolean
+        const following = card.following; 
+
+        // 缓存粉丝数和投稿数
+        if (typeof follower === 'number') this._lastFollower = follower;
+        if (typeof archiveCount === 'number') this._lastArchiveCount = archiveCount;
 
         const upinfo = document.querySelector<HTMLElement>('#v_upinfo');
         if (!upinfo) return;
 
+        // 如果当前是合作UP主卡片布局，需要先重建单UP主结构
+        if (!upinfo.querySelector('.u-face')) {
+            this.rebuildSingleUp(upinfo, up);
+        }
+
         try {
-            // 头像图片 (.u-face .up-face)
+            // 头像图片
             const faceImg = upinfo.querySelector<HTMLImageElement>('.u-face .up-face');
             if (faceImg) {
                 faceImg.src = `${up.face}@68w_68h.webp`;
             }
 
-            // 头像链接 (.u-face .a) — 更新href
+            // 头像链接
             const faceLink = upinfo.querySelector<HTMLAnchorElement>('.u-face .a');
             if (faceLink && up.mid) {
                 faceLink.href = `//space.bilibili.com/${up.mid}`;
             }
 
-            // 头像框 (.u-face .pendant) — 先移除旧的，再根据 pendant.image 添加新的
+            // 头像框
             const faceContainer = faceLink;
             if (faceContainer) {
                 const oldPendant = faceContainer.querySelector('.lazy-img.pendant');
@@ -580,36 +647,33 @@ export class PageList extends Page {
                 }
             }
 
-            // 认证角标 (.u-face .auth) — 先移除旧的，再根据 official_verify.type 添加新的
+            // 认证角标
             if (faceContainer) {
                 const oldAuth = faceContainer.querySelector('.auth');
                 if (oldAuth) oldAuth.remove();
                 const verifyType = up.official_verify?.type;
                 if (verifyType !== undefined && verifyType !== -1) {
                     const authIcon = document.createElement('i');
-                    // 0=个人认证(p-auth), 1=机构认证(b-auth)
                     authIcon.className = verifyType === 0 ? 'auth p-auth' : 'auth b-auth';
                     authIcon.title = verifyType === 0 ? '个人认证' : '机构认证';
                     faceContainer.appendChild(authIcon);
                 }
             }
 
-            // 昵称 (.user .name) — 更新文字、链接、大会员粉色样式
+            // 昵称
             const nameEl = upinfo.querySelector<HTMLAnchorElement>('.user .name');
             if (nameEl) {
                 nameEl.textContent = up.name;
-                if (up.mid) nameEl.href = `//space.bilibili.com/${up.mid}`;
-                // 大会员显示粉色昵称 (is-vip class)
                 nameEl.classList.toggle('is-vip', !!up.vip?.status);
             }
 
-            // 发消息链接 (.user .message) — 更新mid
+            // 发消息链接
             const msgLink = upinfo.querySelector<HTMLAnchorElement>('.user .message');
             if (msgLink && up.mid) {
                 msgLink.href = `//message.bilibili.com/#whisper/mid${up.mid}`;
             }
 
-            // 签名 (.sign .static) — 保留"展开"按钮，始终显示标签避免排版错乱
+            // 签名
             const signContainer = upinfo.querySelector<HTMLElement>('.sign.static');
             if (signContainer) {
                 const signSpan = signContainer.querySelector<HTMLSpanElement>('span');
@@ -624,7 +688,7 @@ export class PageList extends Page {
                 }
             }
 
-            // 投稿数和粉丝数 (.number span)
+            // 投稿数和粉丝数
             if (typeof archiveCount === 'number' || typeof follower === 'number') {
                 const numberSpans = upinfo.querySelectorAll<HTMLElement>('.number span');
                 numberSpans.forEach(span => {
@@ -649,13 +713,12 @@ export class PageList extends Page {
                 });
             }
 
-            // 关注按钮 — 通过 /x/relation 接口确认关注状态
+            // 关注按钮
             const upinfoVue = (<any>upinfo).__vue__;
             if (upinfoVue?.$data && up.mid) {
                 apiRelation(up.mid).then(rel => {
                     if (this.destroy) return;
                     const attr = rel.attribute;
-                    // 2=已关注, 6=已互粉 → 视为已关注
                     const isFollowed = attr === 2 || attr === 6;
                     upinfoVue.$set(upinfoVue.$data, 'following', { is: isFollowed, type: isFollowed ? attr : 0 });
                 }).catch(() => {
@@ -663,7 +726,7 @@ export class PageList extends Page {
                 });
             }
 
-            // 更新当前UP主mid（#v_tag 和 #app 的 Vue 实例）
+            // 更新当前UP主mid
             if (up.mid) {
                 const vtagVue = document.querySelector('#v_tag') && (<any>document.querySelector('#v_tag')).__vue__;
                 if (vtagVue?.$data) {
@@ -675,7 +738,7 @@ export class PageList extends Page {
                 }
             }
 
-            // 充电按钮 — 根据 View.rights.elec 控制显示
+            // 充电按钮
             const chargeBtn = upinfo.querySelector<HTMLAnchorElement>('[report-id="charge"]');
             if (chargeBtn) {
                 chargeBtn.style.display = view?.rights?.elec ? '' : 'none';
