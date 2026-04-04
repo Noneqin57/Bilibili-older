@@ -12,6 +12,7 @@ import html from '../html/list.html';
 import { IAidInfo, IStaf, jsonCheck } from "../io/api";
 import { apiArticleCards } from "../io/api-article-cards";
 import { apiBiliplusView } from "../io/api-biliplus-view";
+import { apiRelation } from "../io/api-relation";
 import { apiViewDetail, ApiViewDetail } from "../io/api-view-detail";
 import menuConfig from '../json/sort.txt';
 import toview from '../json/toview.json';
@@ -507,6 +508,8 @@ export class PageList extends Page {
                     } catch { }
                     // 记录视频数据
                     videoInfo.aidDatail(d.View);
+                    // 更新UP主信息（头像、昵称、签名、粉丝数、投稿数等）
+                    this.updateUpInfo(d.Card, d.View);
                 })
                 .catch(e => {
                     toast.error('更新视频信息失败', e)();
@@ -524,6 +527,171 @@ export class PageList extends Page {
                     }
                 });
         }
+    }
+
+    // ===================================================================
+    //  UP主信息更新
+    // ===================================================================
+
+    /**
+     * 更新UP主信息（头像、昵称、签名、粉丝数、投稿数、关注状态、充电按钮等）
+     * 在播单内切换到不同UP主的视频时调用
+     * @param card apiViewDetail返回的Card字段（包含IUserInfo）
+     * @param view apiViewDetail返回的View字段（用于获取rights.elec充电开关）
+     */
+    protected updateUpInfo(card: any, view?: any) {
+        if (!card?.card) return;
+
+        const up = card.card; // IUserInfo
+        const follower = card.follower;
+        const archiveCount = card.archive_count;
+        const following = card.following; // boolean
+
+        const upinfo = document.querySelector<HTMLElement>('#v_upinfo');
+        if (!upinfo) return;
+
+        try {
+            // 头像图片 (.u-face .up-face)
+            const faceImg = upinfo.querySelector<HTMLImageElement>('.u-face .up-face');
+            if (faceImg) {
+                faceImg.src = `${up.face}@68w_68h.webp`;
+            }
+
+            // 头像链接 (.u-face .a) — 更新href
+            const faceLink = upinfo.querySelector<HTMLAnchorElement>('.u-face .a');
+            if (faceLink && up.mid) {
+                faceLink.href = `//space.bilibili.com/${up.mid}`;
+            }
+
+            // 头像框 (.u-face .pendant) — 先移除旧的，再根据 pendant.image 添加新的
+            const faceContainer = faceLink;
+            if (faceContainer) {
+                const oldPendant = faceContainer.querySelector('.lazy-img.pendant');
+                if (oldPendant) oldPendant.remove();
+                const pendantImg = up.pendant?.image;
+                if (pendantImg) {
+                    const pendantDiv = document.createElement('div');
+                    pendantDiv.className = 'lazy-img pendant';
+                    const img = document.createElement('img');
+                    img.alt = '';
+                    img.src = `${pendantImg}@112w_112h.webp`;
+                    pendantDiv.appendChild(img);
+                    faceContainer.appendChild(pendantDiv);
+                }
+            }
+
+            // 认证角标 (.u-face .auth) — 先移除旧的，再根据 official_verify.type 添加新的
+            if (faceContainer) {
+                const oldAuth = faceContainer.querySelector('.auth');
+                if (oldAuth) oldAuth.remove();
+                const verifyType = up.official_verify?.type;
+                if (verifyType !== undefined && verifyType !== -1) {
+                    const authIcon = document.createElement('i');
+                    // 0=个人认证(p-auth), 1=机构认证(b-auth)
+                    authIcon.className = verifyType === 0 ? 'auth p-auth' : 'auth b-auth';
+                    authIcon.title = verifyType === 0 ? '个人认证' : '机构认证';
+                    faceContainer.appendChild(authIcon);
+                }
+            }
+
+            // 昵称 (.user .name) — 更新文字、链接、大会员粉色样式
+            const nameEl = upinfo.querySelector<HTMLAnchorElement>('.user .name');
+            if (nameEl) {
+                nameEl.textContent = up.name;
+                if (up.mid) nameEl.href = `//space.bilibili.com/${up.mid}`;
+                // 大会员显示粉色昵称 (is-vip class)
+                nameEl.classList.toggle('is-vip', !!up.vip?.status);
+            }
+
+            // 发消息链接 (.user .message) — 更新mid
+            const msgLink = upinfo.querySelector<HTMLAnchorElement>('.user .message');
+            if (msgLink && up.mid) {
+                msgLink.href = `//message.bilibili.com/#whisper/mid${up.mid}`;
+            }
+
+            // 签名 (.sign .static) — 保留"展开"按钮，始终显示标签避免排版错乱
+            const signContainer = upinfo.querySelector<HTMLElement>('.sign.static');
+            if (signContainer) {
+                const signSpan = signContainer.querySelector<HTMLSpanElement>('span');
+                const expandBtn = signContainer.querySelector<HTMLButtonElement>('.bi-btn.text-only');
+                if (signSpan) {
+                    signSpan.textContent = up.sign || '';
+                    signSpan.style.display = up.sign ? '' : 'none';
+                }
+                if (expandBtn) {
+                    // 签名够长时显示展开按钮，否则隐藏
+                    expandBtn.style.display = (up.sign && up.sign.length > 50) ? '' : 'none';
+                }
+            }
+
+            // 投稿数和粉丝数 (.number span)
+            if (typeof archiveCount === 'number' || typeof follower === 'number') {
+                const numberSpans = upinfo.querySelectorAll<HTMLElement>('.number span');
+                numberSpans.forEach(span => {
+                    const title = span.getAttribute('title');
+                    if (title?.startsWith('投稿数')) {
+                        if (typeof archiveCount === 'number') {
+                            const formatted = archiveCount > 10000
+                                ? `${(archiveCount / 10000).toFixed(1)}万`
+                                : String(archiveCount);
+                            span.textContent = `投稿：${formatted}`;
+                            span.setAttribute('title', `投稿数${archiveCount}`);
+                        }
+                    } else if (title?.startsWith('粉丝数')) {
+                        if (typeof follower === 'number') {
+                            const formatted = follower > 10000
+                                ? `${(follower / 10000).toFixed(1)}万`
+                                : String(follower);
+                            span.textContent = `粉丝：${formatted}`;
+                            span.setAttribute('title', `粉丝数${follower}`);
+                        }
+                    }
+                });
+            }
+
+            // 关注按钮 — 通过 /x/relation 接口确认关注状态
+            const upinfoVue = (<any>upinfo).__vue__;
+            if (upinfoVue?.$data && up.mid) {
+                apiRelation(up.mid).then(rel => {
+                    if (this.destroy) return;
+                    const attr = rel.attribute;
+                    // 2=已关注, 6=已互粉 → 视为已关注
+                    const isFollowed = attr === 2 || attr === 6;
+                    upinfoVue.$set(upinfoVue.$data, 'following', { is: isFollowed, type: isFollowed ? attr : 0 });
+                }).catch(() => {
+                    // 接口失败时不设置关注状态
+                });
+            }
+
+            // 更新当前UP主mid（#v_tag 和 #app 的 Vue 实例）
+            if (up.mid) {
+                const vtagVue = document.querySelector('#v_tag') && (<any>document.querySelector('#v_tag')).__vue__;
+                if (vtagVue?.$data) {
+                    vtagVue.$data.mid = String(up.mid);
+                }
+                const appVue = document.querySelector('#app') && (<any>document.querySelector('#app')).__vue__;
+                if (appVue?.$data?.mid !== undefined) {
+                    appVue.$data.mid = String(up.mid);
+                }
+            }
+
+            // 充电按钮 — 根据 View.rights.elec 控制显示
+            const chargeBtn = upinfo.querySelector<HTMLAnchorElement>('[report-id="charge"]');
+            if (chargeBtn) {
+                chargeBtn.style.display = view?.rights?.elec ? '' : 'none';
+            }
+        } catch (e) {
+            console.warn('更新UP主DOM失败:', e);
+        }
+
+        // 更新面包屑中的UP主链接
+        try {
+            const crumbEl = document.querySelector<HTMLAnchorElement>('.crumb .a-crumbs a[href*="space.bilibili.com"], .video-info-m .a-crumbs a[href*="space.bilibili.com"]');
+            if (crumbEl && up.mid) {
+                crumbEl.href = `//space.bilibili.com/${up.mid}`;
+                crumbEl.textContent = up.name;
+            }
+        } catch { }
     }
 
     // ===================================================================

@@ -76,6 +76,7 @@ export class URLS {
     static readonly ARTICLE_UPCOVER = URLS.P_AUTO + URLS.D_API + '/x/article/creative/article/upcover';
     static readonly DRAW_IMAGE_UPLOAD = URLS.P_AUTO + URLS.D_API_VC + '/api/v1/drawImage/upload';
     static readonly DYNAMIC_UPLOAD_BFS = URLS.P_AUTO + URLS.D_API + '/x/dynamic/feed/draw/upload_bfs';
+    static readonly RELATION = URLS.P_AUTO + URLS.D_API + '/x/relation';
     /** 退出登录 */
     static readonly PASSPORT_LOGIN_EXIT = URLS.P_AUTO + URLS.D_PASSPORT + '/login/exit/v2';
     static readonly PASSPORT_AUTH_CODE = URLS.P_AUTO + URLS.D_PASSPORT + '/x/passport-tv-login/qrcode/auth_code';
