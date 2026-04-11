@@ -263,7 +263,10 @@ export class Header {
     protected static styleFix() {
         addCss(".nav-item.live {width: auto;}.lt-row {display: none !important;} .bili-header-m #banner_link{background-size: cover;background-position: center !important;}", 'lt-row-fix');
         addCss(cssAvatarAnimation, "avatarAnimation");
-        this.fullBannerCover && addCss('.bili-header-m #banner_link{height: 9.375vw !important;min-width: 1000px;min-height: 155px;max-height: 240px;}')
+        this.fullBannerCover && addCss('.bili-header-m #banner_link{height: 9.375vw !important;min-width: 1000px;min-height: 155px;max-height: 240px;}');
+        // 使用 backdrop-filter 给 nav-mask 加模糊，替代 blur-bg
+        addCss('.nav-menu .blur-bg{display: none !important;}', 'hide-blur-bg');
+        addCss('.nav-menu .nav-mask{background: rgba(255,255,255,0.4) !important; backdrop-filter: blur(4px) !important; -webkit-backdrop-filter: blur(20px) !important;}', 'nav-mask-blur');
     }
     /** 禁用新版顶栏相关样式 */
     protected async styleClear() {
