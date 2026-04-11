@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili 旧播放页
 // @namespace    MotooriKashin
-// @version      10.10.5-c4810e4dcd783af0f393a510acaf7ae8aa7ce5b9
+// @version      10.10.6-e813e375972d8105ed7da4aa208d9ffe929d0886
 // @description  恢复Bilibili旧版页面，为了那些念旧的人。
 // @author       MotooriKashin, wly5556, FMPeach
 // @homepage     https://github.com/FMPeach/Bilibili-Old
@@ -8921,7 +8921,7 @@ const MODULES = `
       }
     }
   };
-  customElements.get(\`toast-\${"c4810e4"}\`) || customElements.define(\`toast-\${"c4810e4"}\`, Toast, { extends: "div" });
+  customElements.get(\`toast-\${"e813e37"}\`) || customElements.define(\`toast-\${"e813e37"}\`, Toast, { extends: "div" });
   var ToastContainer = class extends HTMLElement {
     /** 实际根节点 */
     container;
@@ -9048,7 +9048,7 @@ const MODULES = `
       }
     }
   };
-  customElements.get(\`toast-container-\${"c4810e4"}\`) || customElements.define(\`toast-container-\${"c4810e4"}\`, ToastContainer);
+  customElements.get(\`toast-container-\${"e813e37"}\`) || customElements.define(\`toast-container-\${"e813e37"}\`, ToastContainer);
   var toast = new ToastContainer();
 
   // src/core/user.ts
@@ -9121,7 +9121,7 @@ const MODULES = `
       }
     }
   };
-  customElements.get("biliold-entry-c4810e4") || customElements.define("bilibili-entry-c4810e4", BilioldEntry);
+  customElements.get("biliold-entry-e813e37") || customElements.define("bilibili-entry-e813e37", BilioldEntry);
 
   // src/core/userstatus.ts
   var userStatus = {
@@ -9404,7 +9404,7 @@ const MODULES = `
       this._button.textContent = v;
     }
   };
-  customElements.get(\`button-\${"c4810e4"}\`) || customElements.define(\`button-\${"c4810e4"}\`, PushButton);
+  customElements.get(\`button-\${"e813e37"}\`) || customElements.define(\`button-\${"e813e37"}\`, PushButton);
 
   // src/core/ui/utils/popupbox.ts
   init_tampermonkey();
@@ -9506,7 +9506,7 @@ const MODULES = `
       }
     }
   };
-  customElements.get(\`popupbox-\${"c4810e4"}\`) || customElements.define(\`popupbox-\${"c4810e4"}\`, PopupBox);
+  customElements.get(\`popupbox-\${"e813e37"}\`) || customElements.define(\`popupbox-\${"e813e37"}\`, PopupBox);
 
   // src/core/ui/alert.ts
   function alert(msg, title, buttons, fork = false) {
@@ -13491,7 +13491,7 @@ const MODULES = `
       this._container.replaceChildren(this._noData);
     }
   };
-  customElements.get(\`download-\${"c4810e4"}\`) || customElements.define(\`download-\${"c4810e4"}\`, BilioldDownload);
+  customElements.get(\`download-\${"e813e37"}\`) || customElements.define(\`download-\${"e813e37"}\`, BilioldDownload);
 
   // src/core/ui/preview-image.ts
   init_tampermonkey();
@@ -13719,7 +13719,7 @@ const MODULES = `
       document.body.style.overflow = "hidden";
     }
   };
-  customElements.get(\`preview-image-\${"c4810e4"}\`) || customElements.define(\`preview-image-\${"c4810e4"}\`, PreviewImage);
+  customElements.get(\`preview-image-\${"e813e37"}\`) || customElements.define(\`preview-image-\${"e813e37"}\`, PreviewImage);
 
   // src/core/videolimit.ts
   init_tampermonkey();
@@ -29763,7 +29763,7 @@ const MODULES = `
           debug.error("获取点赞情况失败", e);
         });
       }
-      addCss(".ulike {cursor: pointer;}.ulike svg{vertical-align: middle;margin-right: 10px;transform: translateY(-1px);}", \`ulike\${"c4810e4"}\`);
+      addCss(".ulike {cursor: pointer;}.ulike svg{vertical-align: middle;margin-right: 10px;transform: translateY(-1px);}", \`ulike\${"e813e37"}\`);
     }
     /** 更新点赞数 */
     get likes() {
@@ -29781,7 +29781,7 @@ const MODULES = `
       this.innerHTML = (this.liked ? like_default : dislike_default) + "点赞 " + unitFormat(this.number);
     }
   };
-  customElements.get(\`like-\${"c4810e4"}\`) || customElements.define(\`like-\${"c4810e4"}\`, Like, { extends: "span" });
+  customElements.get(\`like-\${"e813e37"}\`) || customElements.define(\`like-\${"e813e37"}\`, Like, { extends: "span" });
 
   // src/css/uplist.css
   var uplist_default = ".up-info-m .up-card-box {\\r\\n    white-space: nowrap;\\r\\n    overflow: auto;\\r\\n}\\r\\n\\r\\n.up-info-m .up-card {\\r\\n    display: inline-block;\\r\\n    margin-top: 10px;\\r\\n}\\r\\n\\r\\n.up-info-m .avatar img {\\r\\n    cursor: pointer;\\r\\n    width: 40px;\\r\\n    height: 40px;\\r\\n    border-radius: 50%;\\r\\n}\\r\\n\\r\\n.up-info-m .avatar {\\r\\n    position: relative;\\r\\n}\\r\\n\\r\\n.up-info-m .avatar .info-tag {\\r\\n    position: absolute;\\r\\n    background: #fff;\\r\\n    border: 1px solid #fb7299;\\r\\n    border-radius: 2px;\\r\\n    display: inline-block;\\r\\n    font-size: 12px;\\r\\n    color: #fb7299;\\r\\n    padding: 0 3px;\\r\\n    top: -10px;\\r\\n    right: -10px;\\r\\n    white-space: nowrap;\\r\\n}\\r\\n\\r\\n.up-info-m .avatar {\\r\\n    width: 60px;\\r\\n    height: 30px;\\r\\n    display: -ms-flexbox;\\r\\n    display: flex;\\r\\n    -ms-flex-pack: center;\\r\\n    justify-content: center;\\r\\n    -ms-flex-align: start;\\r\\n    align-items: flex-start;\\r\\n}\\r\\n\\r\\n.up-info-m .avatar .name-text {\\r\\n    font-family: PingFangSC-Regular, sans-serif;\\r\\n    line-height: 30px;\\r\\n    color: #222;\\r\\n    word-break: break-all;\\r\\n    overflow: hidden;\\r\\n    text-overflow: ellipsis;\\r\\n    display: -webkit-box;\\r\\n    -webkit-line-clamp: 2;\\r\\n    -webkit-box-orient: vertical;\\r\\n    white-space: nowrap;\\r\\n}\\r\\n\\r\\n.up-info-m .avatar .name-text.is-vip,\\r\\n.up-info-m .avatar .name-text:hover {\\r\\n    color: #fb7299;\\r\\n}\\r\\n\\r\\n.up-info-m .title {\\r\\n    display: block;\\r\\n    font-size: 14px;\\r\\n    margin-right: 80px;\\r\\n    color: #525659;\\r\\n    overflow: hidden;\\r\\n    height: 24px;\\r\\n    font-weight: 400;\\r\\n    padding: 8px 0;\\r\\n}";
@@ -40208,7 +40208,7 @@ const MODULES = `
       }
     }
   };
-  customElements.get(\`desc-\${"c4810e4"}\`) || customElements.define(\`desc-\${"c4810e4"}\`, Desc);
+  customElements.get(\`desc-\${"e813e37"}\`) || customElements.define(\`desc-\${"e813e37"}\`, Desc);
 
   // src/core/ui/interface.ts
   init_tampermonkey();
@@ -40286,7 +40286,7 @@ const MODULES = `
       this._value.appendChild(value);
     }
   };
-  customElements.get(\`item-\${"c4810e4"}\`) || customElements.define(\`item-\${"c4810e4"}\`, SettingItem, { extends: "div" });
+  customElements.get(\`item-\${"e813e37"}\`) || customElements.define(\`item-\${"e813e37"}\`, SettingItem, { extends: "div" });
 
   // src/core/ui/menu.ts
   init_tampermonkey();
@@ -40320,7 +40320,7 @@ const MODULES = `
       this._card.append(...item);
     }
   };
-  customElements.get(\`item-container-\${"c4810e4"}\`) || customElements.define(\`item-container-\${"c4810e4"}\`, ItemContainer, { extends: "div" });
+  customElements.get(\`item-container-\${"e813e37"}\`) || customElements.define(\`item-container-\${"e813e37"}\`, ItemContainer, { extends: "div" });
 
   // src/core/ui/menu.ts
   var Menuitem = class extends HTMLDivElement {
@@ -40380,7 +40380,7 @@ const MODULES = `
       return this.container;
     }
   };
-  customElements.get(\`menuitem-\${"c4810e4"}\`) || customElements.define(\`menuitem-\${"c4810e4"}\`, Menuitem, { extends: "div" });
+  customElements.get(\`menuitem-\${"e813e37"}\`) || customElements.define(\`menuitem-\${"e813e37"}\`, Menuitem, { extends: "div" });
 
   // src/core/ui/utils/checkbox.ts
   init_tampermonkey();
@@ -40469,7 +40469,7 @@ const MODULES = `
       Object.entries(value).forEach((d) => this[d[0]] = d[1]);
     }
   };
-  customElements.get(\`checkbox-\${"c4810e4"}\`) || customElements.define(\`checkbox-\${"c4810e4"}\`, CheckBox);
+  customElements.get(\`checkbox-\${"e813e37"}\`) || customElements.define(\`checkbox-\${"e813e37"}\`, CheckBox);
   var CheckBoxs = class extends HTMLDivElement {
     \$value = [];
     checkboxs = {};
@@ -40520,7 +40520,7 @@ const MODULES = `
       });
     }
   };
-  customElements.get(\`checkboxs-\${"c4810e4"}\`) || customElements.define(\`checkboxs-\${"c4810e4"}\`, CheckBoxs, { extends: "div" });
+  customElements.get(\`checkboxs-\${"e813e37"}\`) || customElements.define(\`checkboxs-\${"e813e37"}\`, CheckBoxs, { extends: "div" });
 
   // src/core/ui/utils/input.ts
   init_tampermonkey();
@@ -40596,7 +40596,7 @@ const MODULES = `
       Object.entries(value).forEach((d) => this[d[0]] = d[1]);
     }
   };
-  customElements.get(\`input-\${"c4810e4"}\`) || customElements.define(\`input-\${"c4810e4"}\`, InputArea);
+  customElements.get(\`input-\${"e813e37"}\`) || customElements.define(\`input-\${"e813e37"}\`, InputArea);
 
   // src/core/ui/utils/select.ts
   init_tampermonkey();
@@ -40663,7 +40663,7 @@ const MODULES = `
       Object.entries(value).forEach((d) => this[d[0]] = d[1]);
     }
   };
-  customElements.get(\`select-\${"c4810e4"}\`) || customElements.define(\`select-\${"c4810e4"}\`, SelectMenu);
+  customElements.get(\`select-\${"e813e37"}\`) || customElements.define(\`select-\${"e813e37"}\`, SelectMenu);
 
   // src/core/ui/utils/slider.ts
   init_tampermonkey();
@@ -40827,7 +40827,7 @@ const MODULES = `
       Object.entries(value).forEach((d) => this[d[0]] = d[1]);
     }
   };
-  customElements.get(\`slider-\${"c4810e4"}\`) || customElements.define(\`slider-\${"c4810e4"}\`, SliderBlock);
+  customElements.get(\`slider-\${"e813e37"}\`) || customElements.define(\`slider-\${"e813e37"}\`, SliderBlock);
 
   // src/core/ui/utils/switch.ts
   init_tampermonkey();
@@ -40876,7 +40876,7 @@ const MODULES = `
       return this;
     }
   };
-  customElements.get(\`switch-\${"c4810e4"}\`) || customElements.define(\`switch-\${"c4810e4"}\`, SwitchButton);
+  customElements.get(\`switch-\${"e813e37"}\`) || customElements.define(\`switch-\${"e813e37"}\`, SwitchButton);
 
   // src/core/ui.ts
   var Menus = {
