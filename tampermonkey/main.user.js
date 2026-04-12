@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili 旧播放页
 // @namespace    MotooriKashin
-// @version      10.10.8-8433d70474c8788a1cd89a976cf94166d55ea87d
+// @version      10.10.9-8433d70474c8788a1cd89a976cf94166d55ea87d
 // @description  恢复Bilibili旧版页面，为了那些念旧的人。
 // @author       MotooriKashin, wly5556, FMPeach
 // @homepage     https://github.com/FMPeach/Bilibili-Old
@@ -37259,6 +37259,7 @@ const MODULES = `
       this.seasonCount();
       this.season();
       this.review();
+      this.sponsorRank();
       ((_a3 = user.userStatus.videoLimit) == null ? void 0 : _a3.status) && this.videoLimit();
       this.related();
       this.initialState();
@@ -37518,6 +37519,16 @@ const MODULES = `
         let res = JSON.stringify(response);
         return { response: res, responseText: res, responseType: "json" };
       }, false);
+    }
+    /** 修复承包榜跨季报错问题 */
+    sponsorRank() {
+      xhrHook("bangumi.bilibili.com/sponsor/web_api/v2/rank/", (args) => {
+        const url = new URL(args[1]);
+        if (!url.searchParams.has("season_type")) {
+          url.searchParams.set("season_type", "1");
+          args[1] = url.toString();
+        }
+      }, void 0, false);
     }
     /** 解除区域限制（重定向模式） */
     videoLimit() {
