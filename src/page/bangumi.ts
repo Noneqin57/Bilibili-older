@@ -81,6 +81,7 @@ export class PageBangumi extends Page {
         this.seasonCount();
         this.season();
         this.review();
+        this.sponsorRank();
         user.userStatus!.videoLimit?.status && this.videoLimit();
         this.related();
         this.initialState();
@@ -347,6 +348,16 @@ export class PageBangumi extends Page {
             let res = JSON.stringify(response);
             return { response: res, responseText: res, responseType: 'json' }
         }, false)
+    }
+    /** 修复承包榜跨季报错问题 */
+    protected sponsorRank() {
+        xhrHook('bangumi.bilibili.com/sponsor/web_api/v2/rank/', args => {
+            const url = new URL(args[1]);
+            if (!url.searchParams.has('season_type')) {
+                url.searchParams.set('season_type', '1');
+                args[1] = url.toString();
+            }
+        }, undefined, false);
     }
     /** 解除区域限制（重定向模式） */
     protected videoLimit() {
