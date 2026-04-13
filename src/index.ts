@@ -128,7 +128,7 @@ user.addCallback(status => {
     new Automate();
     status.disableReport && new ReportObserver();
     status.videoLimit.status && videoLimit.enable();
-    status.fullBannerCover && (Header.fullBannerCover = true);
+    status.dynamicBanner && (Header.dynamicBanner = true);
     status.header && new Header();
     status.comment && new Comment();
     status.webRTC || WebTRC.disable();
