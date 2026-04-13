@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili 旧播放页
 // @namespace    MotooriKashin
-// @version      10.10.9-8433d70474c8788a1cd89a976cf94166d55ea87d
+// @version      10.10.10-e1e6e9fac952fc1f87503c8f75be6008ab57940e
 // @description  恢复Bilibili旧版页面，为了那些念旧的人。
 // @author       MotooriKashin, wly5556, FMPeach
 // @homepage     https://github.com/FMPeach/Bilibili-Old
@@ -2502,8 +2502,12 @@ const MODULES = `
       var util = require_minimal();
       function Message2(properties) {
         if (properties)
-          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-            this[keys[i]] = properties[keys[i]];
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i) {
+            var key = keys[i];
+            if (key === "__proto__")
+              continue;
+            this[key] = properties[key];
+          }
       }
       Message2.create = function create(properties) {
         return this.\$type.create(properties);
@@ -2973,6 +2977,7 @@ const MODULES = `
       var converter = require_converter();
       var wrappers = require_wrappers();
       function Type3(name, options) {
+        name = name.replace(/\\W/g, "");
         Namespace.call(this, name, options);
         this.fields = {};
         this.oneofs = void 0;
@@ -7886,6 +7891,8 @@ const MODULES = `
       this.cid = cid;
       _ApiDmWeb.Root || _ApiDmWeb.RootInit();
     }
+    aid;
+    cid;
     static Root;
     static DmWebViewReply;
     static DmSegMobileReply;
@@ -8416,6 +8423,7 @@ const MODULES = `
         id: aid
       }));
     }
+    aid;
     fetch;
     async getDate() {
       const respense = await this.fetch;
@@ -8921,7 +8929,7 @@ const MODULES = `
       }
     }
   };
-  customElements.get(\`toast-\${"8433d70"}\`) || customElements.define(\`toast-\${"8433d70"}\`, Toast, { extends: "div" });
+  customElements.get(\`toast-\${"e1e6e9f"}\`) || customElements.define(\`toast-\${"e1e6e9f"}\`, Toast, { extends: "div" });
   var ToastContainer = class extends HTMLElement {
     /** 实际根节点 */
     container;
@@ -9048,7 +9056,7 @@ const MODULES = `
       }
     }
   };
-  customElements.get(\`toast-container-\${"8433d70"}\`) || customElements.define(\`toast-container-\${"8433d70"}\`, ToastContainer);
+  customElements.get(\`toast-container-\${"e1e6e9f"}\`) || customElements.define(\`toast-container-\${"e1e6e9f"}\`, ToastContainer);
   var toast = new ToastContainer();
 
   // src/core/user.ts
@@ -9121,7 +9129,7 @@ const MODULES = `
       }
     }
   };
-  customElements.get("biliold-entry-8433d70") || customElements.define("bilibili-entry-8433d70", BilioldEntry);
+  customElements.get("biliold-entry-e1e6e9f") || customElements.define("bilibili-entry-e1e6e9f", BilioldEntry);
 
   // src/core/userstatus.ts
   var userStatus = {
@@ -9404,7 +9412,7 @@ const MODULES = `
       this._button.textContent = v;
     }
   };
-  customElements.get(\`button-\${"8433d70"}\`) || customElements.define(\`button-\${"8433d70"}\`, PushButton);
+  customElements.get(\`button-\${"e1e6e9f"}\`) || customElements.define(\`button-\${"e1e6e9f"}\`, PushButton);
 
   // src/core/ui/utils/popupbox.ts
   init_tampermonkey();
@@ -9418,6 +9426,7 @@ const MODULES = `
       this.target = target;
       target.addEventListener("click", (e) => e.stopPropagation());
     }
+    target;
     /** 已启用监听 */
     enabled = false;
     /** 移除节点 */
@@ -9506,7 +9515,7 @@ const MODULES = `
       }
     }
   };
-  customElements.get(\`popupbox-\${"8433d70"}\`) || customElements.define(\`popupbox-\${"8433d70"}\`, PopupBox);
+  customElements.get(\`popupbox-\${"e1e6e9f"}\`) || customElements.define(\`popupbox-\${"e1e6e9f"}\`, PopupBox);
 
   // src/core/ui/alert.ts
   function alert(msg, title, buttons, fork = false) {
@@ -9966,6 +9975,8 @@ const MODULES = `
       this.url = url;
       this.appkey = appkey;
     }
+    url;
+    appkey;
     get ts() {
       return (/* @__PURE__ */ new Date()).getTime();
     }
@@ -10326,6 +10337,7 @@ const MODULES = `
         fnval
       }, data, pgc ? { module: "bangumi", season_type: 1 } : {});
     }
+    data;
     async getData() {
       const response = await fetch(this.sign().toJSON(), { credentials: "include" });
       return await response.json();
@@ -10350,6 +10362,8 @@ const MODULES = `
         otype: "json"
       }, data, dash ? { fnval, fnver } : {});
     }
+    data;
+    pgc;
     async getData() {
       const response = await GM.fetch(this.sign().toJSON());
       const json = await response.json();
@@ -10375,6 +10389,7 @@ const MODULES = `
         build: 102801
       }, data, dash ? { fnval, fnver } : {});
     }
+    data;
     async getData() {
       const response = await fetch(this.sign().toJSON());
       const json = await response.json();
@@ -10398,6 +10413,7 @@ const MODULES = `
       }, data);
       pgc && (this.data.module = "bangumi");
     }
+    data;
     async getData() {
       const response = await fetch(this.sign().toJSON());
       return await response.json();
@@ -12742,6 +12758,7 @@ const MODULES = `
       _BAPIMetadata.Root || _BAPIMetadata.RootInit();
       accessKey && (this.metadata.accessKey = accessKey);
     }
+    accessKey;
     /** 命名空间 */
     static Root;
     /** Type<Metadata> */
@@ -12836,6 +12853,7 @@ const MODULES = `
       this.accessKey = accessKey;
       _BAPIAppPlayurlV1.Root || (_BAPIAppPlayurlV1.Root = import_light3.Root.fromJSON(playurl_default));
     }
+    accessKey;
     /** 命名空间 */
     static Root;
     package = "bilibili.app.playurl.v1";
@@ -12910,6 +12928,14 @@ const MODULES = `
       this.split = split;
       this.size = size;
     }
+    userAgent;
+    referer;
+    dir;
+    server;
+    port;
+    token;
+    split;
+    size;
     get url() {
       return \`\${this.server}:\${this.port}/jsonrpc\`;
     }
@@ -12974,6 +13000,9 @@ const MODULES = `
       this.referer = referer;
       this.dir = dir;
     }
+    userAgent;
+    referer;
+    dir;
     /** 命令行 */
     cmdlet(data) {
       const arr2 = ["curl", "-C", "-", \`"\${data.url}"\`];
@@ -12996,6 +13025,11 @@ const MODULES = `
       this.delay = delay;
       this.silence = silence;
     }
+    userAgent;
+    referer;
+    dir;
+    delay;
+    silence;
     /** 拉起IDM */
     sendLinkToIDM(data) {
       this.rebuildData(data);
@@ -13185,6 +13219,7 @@ const MODULES = `
     constructor(fileName) {
       this.fileName = fileName;
     }
+    fileName;
     /** 数据 */
     record = [];
     /** id => 质量 */
@@ -13491,7 +13526,7 @@ const MODULES = `
       this._container.replaceChildren(this._noData);
     }
   };
-  customElements.get(\`download-\${"8433d70"}\`) || customElements.define(\`download-\${"8433d70"}\`, BilioldDownload);
+  customElements.get(\`download-\${"e1e6e9f"}\`) || customElements.define(\`download-\${"e1e6e9f"}\`, BilioldDownload);
 
   // src/core/ui/preview-image.ts
   init_tampermonkey();
@@ -13525,6 +13560,10 @@ const MODULES = `
       side && ele.insertAdjacentElement("afterend", _Scrollbar.style.cloneNode(true));
       this.flesh();
     }
+    ele;
+    x;
+    y;
+    side;
     static mutex = getMetux();
     static prefix = "scrollbar-" + _Scrollbar.mutex;
     static style;
@@ -13719,7 +13758,7 @@ const MODULES = `
       document.body.style.overflow = "hidden";
     }
   };
-  customElements.get(\`preview-image-\${"8433d70"}\`) || customElements.define(\`preview-image-\${"8433d70"}\`, PreviewImage);
+  customElements.get(\`preview-image-\${"e1e6e9f"}\`) || customElements.define(\`preview-image-\${"e1e6e9f"}\`, PreviewImage);
 
   // src/core/videolimit.ts
   init_tampermonkey();
@@ -13745,6 +13784,8 @@ const MODULES = `
       this.url = url;
       this.size = size;
     }
+    url;
+    size;
     /** range索引结束点 */
     end = 5999;
     /** range索引开始点 */
@@ -13805,6 +13846,7 @@ const MODULES = `
         platform: "android"
       }, data);
     }
+    data;
     response;
     async getDate() {
       if (this.response) return this.response;
@@ -25352,6 +25394,9 @@ const MODULES = `
       this.hash = hash;
       this.protocol = protocol;
     }
+    host;
+    hash;
+    protocol;
     /**
      * 获取cdn链接
      * @param path 文件相对路径
@@ -29241,6 +29286,7 @@ const MODULES = `
               super();
               this.arg = arg;
             }
+            arg;
             \$parent;
             mount(parent) {
               if (load) {
@@ -29765,7 +29811,7 @@ const MODULES = `
           debug.error("获取点赞情况失败", e);
         });
       }
-      addCss(".ulike {cursor: pointer;}.ulike svg{vertical-align: middle;margin-right: 10px;transform: translateY(-1px);}", \`ulike\${"8433d70"}\`);
+      addCss(".ulike {cursor: pointer;}.ulike svg{vertical-align: middle;margin-right: 10px;transform: translateY(-1px);}", \`ulike\${"e1e6e9f"}\`);
     }
     /** 更新点赞数 */
     get likes() {
@@ -29783,7 +29829,7 @@ const MODULES = `
       this.innerHTML = (this.liked ? like_default : dislike_default) + "点赞 " + unitFormat(this.number);
     }
   };
-  customElements.get(\`like-\${"8433d70"}\`) || customElements.define(\`like-\${"8433d70"}\`, Like, { extends: "span" });
+  customElements.get(\`like-\${"e1e6e9f"}\`) || customElements.define(\`like-\${"e1e6e9f"}\`, Like, { extends: "span" });
 
   // src/css/uplist.css
   var uplist_default = ".up-info-m .up-card-box {\\r\\n    white-space: nowrap;\\r\\n    overflow: auto;\\r\\n}\\r\\n\\r\\n.up-info-m .up-card {\\r\\n    display: inline-block;\\r\\n    margin-top: 10px;\\r\\n}\\r\\n\\r\\n.up-info-m .avatar img {\\r\\n    cursor: pointer;\\r\\n    width: 40px;\\r\\n    height: 40px;\\r\\n    border-radius: 50%;\\r\\n}\\r\\n\\r\\n.up-info-m .avatar {\\r\\n    position: relative;\\r\\n}\\r\\n\\r\\n.up-info-m .avatar .info-tag {\\r\\n    position: absolute;\\r\\n    background: #fff;\\r\\n    border: 1px solid #fb7299;\\r\\n    border-radius: 2px;\\r\\n    display: inline-block;\\r\\n    font-size: 12px;\\r\\n    color: #fb7299;\\r\\n    padding: 0 3px;\\r\\n    top: -10px;\\r\\n    right: -10px;\\r\\n    white-space: nowrap;\\r\\n}\\r\\n\\r\\n.up-info-m .avatar {\\r\\n    width: 60px;\\r\\n    height: 30px;\\r\\n    display: -ms-flexbox;\\r\\n    display: flex;\\r\\n    -ms-flex-pack: center;\\r\\n    justify-content: center;\\r\\n    -ms-flex-align: start;\\r\\n    align-items: flex-start;\\r\\n}\\r\\n\\r\\n.up-info-m .avatar .name-text {\\r\\n    font-family: PingFangSC-Regular, sans-serif;\\r\\n    line-height: 30px;\\r\\n    color: #222;\\r\\n    word-break: break-all;\\r\\n    overflow: hidden;\\r\\n    text-overflow: ellipsis;\\r\\n    display: -webkit-box;\\r\\n    -webkit-line-clamp: 2;\\r\\n    -webkit-box-orient: vertical;\\r\\n    white-space: nowrap;\\r\\n}\\r\\n\\r\\n.up-info-m .avatar .name-text.is-vip,\\r\\n.up-info-m .avatar .name-text:hover {\\r\\n    color: #fb7299;\\r\\n}\\r\\n\\r\\n.up-info-m .title {\\r\\n    display: block;\\r\\n    font-size: 14px;\\r\\n    margin-right: 80px;\\r\\n    color: #525659;\\r\\n    overflow: hidden;\\r\\n    height: 24px;\\r\\n    font-weight: 400;\\r\\n    padding: 8px 0;\\r\\n}";
@@ -37091,6 +37137,7 @@ const MODULES = `
         s_locale: "zh_SG"
       }, data);
     }
+    data;
     async getDate() {
       const response = await fetch(this.sign().toJSON());
       const json = await response.json();
@@ -37114,6 +37161,9 @@ const MODULES = `
       this.cid = cid;
       this.has_next = has_next;
     }
+    aid;
+    cid;
+    has_next;
     allow_bp = false;
     answer_status = 0;
     bgm_info;
@@ -39930,6 +39980,7 @@ const MODULES = `
       this.api = api;
       this.api = encodeURIComponent(api);
     }
+    api;
     async getData() {
       const response = await fetch(this.sign({ api: this.api }, this.api).toJSON(), { credentials: "include" });
       const json = await response.json();
@@ -40221,7 +40272,7 @@ const MODULES = `
       }
     }
   };
-  customElements.get(\`desc-\${"8433d70"}\`) || customElements.define(\`desc-\${"8433d70"}\`, Desc);
+  customElements.get(\`desc-\${"e1e6e9f"}\`) || customElements.define(\`desc-\${"e1e6e9f"}\`, Desc);
 
   // src/core/ui/interface.ts
   init_tampermonkey();
@@ -40299,7 +40350,7 @@ const MODULES = `
       this._value.appendChild(value);
     }
   };
-  customElements.get(\`item-\${"8433d70"}\`) || customElements.define(\`item-\${"8433d70"}\`, SettingItem, { extends: "div" });
+  customElements.get(\`item-\${"e1e6e9f"}\`) || customElements.define(\`item-\${"e1e6e9f"}\`, SettingItem, { extends: "div" });
 
   // src/core/ui/menu.ts
   init_tampermonkey();
@@ -40333,7 +40384,7 @@ const MODULES = `
       this._card.append(...item);
     }
   };
-  customElements.get(\`item-container-\${"8433d70"}\`) || customElements.define(\`item-container-\${"8433d70"}\`, ItemContainer, { extends: "div" });
+  customElements.get(\`item-container-\${"e1e6e9f"}\`) || customElements.define(\`item-container-\${"e1e6e9f"}\`, ItemContainer, { extends: "div" });
 
   // src/core/ui/menu.ts
   var Menuitem = class extends HTMLDivElement {
@@ -40393,7 +40444,7 @@ const MODULES = `
       return this.container;
     }
   };
-  customElements.get(\`menuitem-\${"8433d70"}\`) || customElements.define(\`menuitem-\${"8433d70"}\`, Menuitem, { extends: "div" });
+  customElements.get(\`menuitem-\${"e1e6e9f"}\`) || customElements.define(\`menuitem-\${"e1e6e9f"}\`, Menuitem, { extends: "div" });
 
   // src/core/ui/utils/checkbox.ts
   init_tampermonkey();
@@ -40482,7 +40533,7 @@ const MODULES = `
       Object.entries(value).forEach((d) => this[d[0]] = d[1]);
     }
   };
-  customElements.get(\`checkbox-\${"8433d70"}\`) || customElements.define(\`checkbox-\${"8433d70"}\`, CheckBox);
+  customElements.get(\`checkbox-\${"e1e6e9f"}\`) || customElements.define(\`checkbox-\${"e1e6e9f"}\`, CheckBox);
   var CheckBoxs = class extends HTMLDivElement {
     \$value = [];
     checkboxs = {};
@@ -40533,7 +40584,7 @@ const MODULES = `
       });
     }
   };
-  customElements.get(\`checkboxs-\${"8433d70"}\`) || customElements.define(\`checkboxs-\${"8433d70"}\`, CheckBoxs, { extends: "div" });
+  customElements.get(\`checkboxs-\${"e1e6e9f"}\`) || customElements.define(\`checkboxs-\${"e1e6e9f"}\`, CheckBoxs, { extends: "div" });
 
   // src/core/ui/utils/input.ts
   init_tampermonkey();
@@ -40609,7 +40660,7 @@ const MODULES = `
       Object.entries(value).forEach((d) => this[d[0]] = d[1]);
     }
   };
-  customElements.get(\`input-\${"8433d70"}\`) || customElements.define(\`input-\${"8433d70"}\`, InputArea);
+  customElements.get(\`input-\${"e1e6e9f"}\`) || customElements.define(\`input-\${"e1e6e9f"}\`, InputArea);
 
   // src/core/ui/utils/select.ts
   init_tampermonkey();
@@ -40676,7 +40727,7 @@ const MODULES = `
       Object.entries(value).forEach((d) => this[d[0]] = d[1]);
     }
   };
-  customElements.get(\`select-\${"8433d70"}\`) || customElements.define(\`select-\${"8433d70"}\`, SelectMenu);
+  customElements.get(\`select-\${"e1e6e9f"}\`) || customElements.define(\`select-\${"e1e6e9f"}\`, SelectMenu);
 
   // src/core/ui/utils/slider.ts
   init_tampermonkey();
@@ -40840,7 +40891,7 @@ const MODULES = `
       Object.entries(value).forEach((d) => this[d[0]] = d[1]);
     }
   };
-  customElements.get(\`slider-\${"8433d70"}\`) || customElements.define(\`slider-\${"8433d70"}\`, SliderBlock);
+  customElements.get(\`slider-\${"e1e6e9f"}\`) || customElements.define(\`slider-\${"e1e6e9f"}\`, SliderBlock);
 
   // src/core/ui/utils/switch.ts
   init_tampermonkey();
@@ -40889,7 +40940,7 @@ const MODULES = `
       return this;
     }
   };
-  customElements.get(\`switch-\${"8433d70"}\`) || customElements.define(\`switch-\${"8433d70"}\`, SwitchButton);
+  customElements.get(\`switch-\${"e1e6e9f"}\`) || customElements.define(\`switch-\${"e1e6e9f"}\`, SwitchButton);
 
   // src/core/ui.ts
   var Menus = {
@@ -41598,6 +41649,8 @@ const MODULES = `
       comment && new Comment();
       typeof this.path === "string" && this.init();
     }
+    path;
+    url;
     toast = toast.list();
     init() {
       this.toast.push("页面重构 >>>", "> " + this.url, "> 已失效~", "> 请求远程备份~");
