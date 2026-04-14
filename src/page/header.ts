@@ -348,5 +348,20 @@ export class Header {
             const response = '{ "code": 0, "data": { "count": 0 }, "message": "0" }';
             return { response, responseText: response }
         }, false);
+        // 修复动态角标
+        xhrHook.async('dynamic_svr/v1/dynamic_svr/dynamic_num', undefined, async () => {
+            try {
+                const res = await fetch('https://api.bilibili.com/x/web-interface/dynamic/entrance?alltype_offset=0&video_offset=0&article_offset=0&web_location=333.1007', {
+                    credentials: 'include'
+                });
+                const json = await res.json();
+                const count: number = json?.data?.update_info?.item?.count ?? 0;
+                const response = JSON.stringify({ code: 0, message: 'OK', ttl: 1, data: { new_num: count, update_num: count } });
+                return { response, responseText: response };
+            } catch {
+                const response = '{"code":0,"message":"OK","ttl":1,"data":{"new_num":0,"update_num":0}}';
+                return { response, responseText: response };
+            }
+        }, false);
     }
 }
