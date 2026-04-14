@@ -21,8 +21,8 @@ export class PageOnline extends Page {
         super.loadedCallback();
         document.title = '当前在线 - 哔哩哔哩 (゜-゜)つロ 干杯~-bilibili';
         //不延时小心给你跳404
-        setTimeout(() => {
+        window.addEventListener('load', () => {
             history.replaceState(null, '', 'online');
-        }, 300);
+        });
     }
 }
