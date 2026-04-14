@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili 旧播放页
 // @namespace    MotooriKashin
-// @version      10.11.1-e1e6e9fac952fc1f87503c8f75be6008ab57940e
+// @version      10.11.2-e1e6e9fac952fc1f87503c8f75be6008ab57940e
 // @description  恢复Bilibili旧版页面，为了那些念旧的人。
 // @author       MotooriKashin, wly5556, FMPeach
 // @homepage     https://github.com/FMPeach/Bilibili-Old
@@ -42381,9 +42381,9 @@ const MODULES = `
     loadedCallback() {
       super.loadedCallback();
       document.title = "当前在线 - 哔哩哔哩 (゜-゜)つロ 干杯~-bilibili";
-      setTimeout(() => {
+      window.addEventListener("load", () => {
         history.replaceState(null, "", "online");
-      }, 300);
+      });
     }
   };
 
