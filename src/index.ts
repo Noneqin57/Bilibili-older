@@ -35,6 +35,7 @@ import { PageMovie } from './page/channel/movie';
 import { PageTv } from './page/channel/tv';
 import { PageDocumentary } from './page/channel/documentary';
 import { loginExit } from './page/logout';
+import { PageOnline } from './page/online';
 
 document.domain = 'bilibili.com';
 
@@ -104,6 +105,9 @@ user.addCallback(status => {
             || /\/html\/cele.html/.test(location.href)
         ) {
             new PageHttps();
+        }
+        if (/\/online(?:\.html)?$/.test(location.pathname)) {
+            new PageOnline();
         }
         if (status.channel) {
             if (/\/(anime|guochuang)\/?$/.test(location.pathname)) {

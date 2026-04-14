@@ -54,9 +54,11 @@ export class PageIndex extends Page {
         this.recommendSpecial();
         Header.primaryMenu();
         Header.banner();
+        this.hookOnlineLink();
         user.userStatus!.timeLine && this.timeLine();
         this.updateDom();
     }
+
     protected locsData() {
         apiWebshowLocs({ ids: [4694, 29, 31, 34, 40, 42, 44] })
             .then(d => {
@@ -277,4 +279,13 @@ export class PageIndex extends Page {
             location.replace(`/video/av${obj.aid}`);
         }
     }
+
+    /** 修复当前在线，/online.html 重定向 /online */
+    protected hookOnlineLink() {
+        poll(
+            () => document.querySelector<HTMLAnchorElement>('a.online[href*="online.html"]'),
+            el => { el.href = '/online'; }
+        );
+    }
+
 }
