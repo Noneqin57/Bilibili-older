@@ -349,7 +349,13 @@ export class Header {
             return { response, responseText: response }
         }, false);
         // 修复动态角标
+        let dynamicNumCalled = false;
         xhrHook.async('dynamic_svr/v1/dynamic_svr/dynamic_num', undefined, async () => {
+            if (dynamicNumCalled) {
+                const response = '{"code":0,"message":"OK","ttl":1,"data":{"new_num":0,"update_num":0}}';
+                return { response, responseText: response };
+            }
+            dynamicNumCalled = true;
             try {
                 const res = await fetch('https://api.bilibili.com/x/web-interface/dynamic/entrance?alltype_offset=0&video_offset=0&article_offset=0&web_location=333.1007', {
                     credentials: 'include'
@@ -362,6 +368,6 @@ export class Header {
                 const response = '{"code":0,"message":"OK","ttl":1,"data":{"new_num":0,"update_num":0}}';
                 return { response, responseText: response };
             }
-        }, false);
+        }, true);
     }
 }
