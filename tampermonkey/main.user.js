@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili 旧播放页
 // @namespace    MotooriKashin
-// @version      10.11.3-e1e6e9fac952fc1f87503c8f75be6008ab57940e
+// @version      10.11.4-e1e6e9fac952fc1f87503c8f75be6008ab57940e
 // @description  恢复Bilibili旧版页面，为了那些念旧的人。
 // @author       MotooriKashin, wly5556, FMPeach
 // @homepage     https://github.com/FMPeach/Bilibili-Old
@@ -24558,8 +24558,14 @@ const MODULES = `
         const response = '{ "code": 0, "data": { "count": 0 }, "message": "0" }';
         return { response, responseText: response };
       }, false);
+      let dynamicNumCalled = false;
       xhrHook.async("dynamic_svr/v1/dynamic_svr/dynamic_num", void 0, async () => {
         var _a3, _b2, _c, _d;
+        if (dynamicNumCalled) {
+          const response = '{"code":0,"message":"OK","ttl":1,"data":{"new_num":0,"update_num":0}}';
+          return { response, responseText: response };
+        }
+        dynamicNumCalled = true;
         try {
           const res = await fetch("https://api.bilibili.com/x/web-interface/dynamic/entrance?alltype_offset=0&video_offset=0&article_offset=0&web_location=333.1007", {
             credentials: "include"
@@ -24572,7 +24578,7 @@ const MODULES = `
           const response = '{"code":0,"message":"OK","ttl":1,"data":{"new_num":0,"update_num":0}}';
           return { response, responseText: response };
         }
-      }, false);
+      }, true);
     }
   };
 
