@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili 旧播放页
 // @namespace    MotooriKashin
-// @version      10.11.5-e1e6e9fac952fc1f87503c8f75be6008ab57940e
+// @version      10.11.6-e1e6e9fac952fc1f87503c8f75be6008ab57940e
 // @description  恢复Bilibili旧版页面，为了那些念旧的人。
 // @author       MotooriKashin, wly5556, FMPeach
 // @homepage     https://github.com/FMPeach/Bilibili-Old
@@ -24029,14 +24029,20 @@ const MODULES = `
     if (!prop.wrap || prop.wrap === "clamp") return Math.max(0, Math.min(1, value));
     return applyAlternateOpacity(value);
   }
+  var VIDEO_DRAW_INTERVAL_MS = 30.3;
   var DynamicBannerRenderer = class {
     container = null;
     layers = [];
     layerElements = [];
     resourceElements = [];
+    videoElements = [];
+    canvasContexts = [];
     layerSnapshots = [];
     resourceMetrics = [];
     layerCurves = [];
+    videoDrawTimerId = 0;
+    idmObserver = null;
+    idmScanFrameId = 0;
     normalizedDisplacementX = 0;
     pointerAnchorClientX = 0;
     bannerHeightScale = 1;
@@ -24067,6 +24073,7 @@ const MODULES = `
       this.bannerHeightScale = container.clientHeight / 155;
       this._buildSnapshots();
       this._buildDOM();
+      this._startIdmSuppression();
       this.container.addEventListener("mouseenter", this._boundMouseEnter);
       this.container.addEventListener("mousemove", this._boundMouseMove);
       this.container.addEventListener("mouseleave", this._boundMouseLeave);
@@ -24082,12 +24089,16 @@ const MODULES = `
       window.removeEventListener("resize", this._boundResize);
       window.removeEventListener("blur", this._boundBlur);
       cancelAnimationFrame(this.animationFrameId);
-      this.resourceElements.forEach((el) => {
-        if (el instanceof HTMLVideoElement) {
-          el.pause();
-          el.src = "";
-          el.load();
-        }
+      if (this.videoDrawTimerId) {
+        window.clearInterval(this.videoDrawTimerId);
+        this.videoDrawTimerId = 0;
+      }
+      this._stopIdmSuppression();
+      this.videoElements.forEach((video) => {
+        if (!video) return;
+        video.pause();
+        video.src = "";
+        video.load();
       });
       if (this.container) {
         const wrapper = this.container.querySelector(".dynamic-banner-wrapper");
@@ -24097,6 +24108,8 @@ const MODULES = `
       this.layers = [];
       this.layerElements = [];
       this.resourceElements = [];
+      this.videoElements = [];
+      this.canvasContexts = [];
       this.layerSnapshots = [];
       this.resourceMetrics = [];
       this.layerCurves = [];
@@ -24142,6 +24155,8 @@ const MODULES = `
       }
       this.layerElements = [];
       this.resourceElements = [];
+      this.videoElements = this.layers.map(() => null);
+      this.canvasContexts = this.layers.map(() => null);
       const fragment = document.createDocumentFragment();
       for (let layerIndex = 0; layerIndex < this.layers.length; layerIndex++) {
         const layer = this.layers[layerIndex];
@@ -24156,16 +24171,24 @@ const MODULES = `
         this.resourceElements.push(resourceElement);
       }
       wrapper.appendChild(fragment);
+      this._startVideoDrawLoop();
       this._scheduleRender(true);
     }
     _createResourceElement(src, layerIndex) {
       if (/\\.(webm|mp4)\$/i.test(src)) {
+        const canvas = document.createElement("canvas");
+        this.canvasContexts[layerIndex] = canvas.getContext("2d");
         const video = document.createElement("video");
         video.src = src;
         video.muted = true;
         video.loop = true;
         video.playsInline = true;
         video.autoplay = true;
+        video.preload = "auto";
+        video.controls = false;
+        video.disablePictureInPicture = true;
+        video.setAttribute("x-webkit-airplay", "deny");
+        video.setAttribute("aria-hidden", "true");
         const ensurePlay = () => {
           if (video.paused) {
             video.play().catch(() => {
@@ -24174,11 +24197,13 @@ const MODULES = `
         };
         video.addEventListener("loadeddata", ensurePlay, { once: true });
         video.addEventListener("canplay", ensurePlay, { once: true });
+        video.addEventListener("play", () => this._drawVideoFrame(layerIndex));
         video.addEventListener("error", () => {
           console.warn(\`[DynamicBannerRenderer] 视频加载失败: \${src}\`);
         });
-        this._registerVideoMetrics(video, layerIndex);
-        return video;
+        this.videoElements[layerIndex] = video;
+        this._registerVideoMetrics(video, layerIndex, canvas);
+        return canvas;
       }
       const img = document.createElement("img");
       img.src = src;
@@ -24195,9 +24220,10 @@ const MODULES = `
       }
       img.addEventListener("load", syncMetrics, { once: true });
     }
-    _registerVideoMetrics(video, layerIndex) {
+    _registerVideoMetrics(video, layerIndex, resourceElement) {
       const syncMetrics = () => {
-        this._captureResourceMetrics(layerIndex, video.videoWidth, video.videoHeight, video);
+        this._captureResourceMetrics(layerIndex, video.videoWidth, video.videoHeight, resourceElement);
+        this._drawVideoFrame(layerIndex);
       };
       if (video.readyState >= 1 && video.videoWidth > 0 && video.videoHeight > 0) {
         syncMetrics();
@@ -24217,8 +24243,92 @@ const MODULES = `
       if (!resourceElement || !metrics || !snapshot || metrics.intrinsicWidth <= 0 || metrics.intrinsicHeight <= 0) return;
       const renderWidth = metrics.intrinsicWidth * this.bannerHeightScale * snapshot.initialScale;
       const renderHeight = metrics.intrinsicHeight * this.bannerHeightScale * snapshot.initialScale;
+      if (resourceElement instanceof HTMLCanvasElement) {
+        const width = Math.max(1, Math.round(renderWidth));
+        const height = Math.max(1, Math.round(renderHeight));
+        if (resourceElement.width !== width) resourceElement.width = width;
+        if (resourceElement.height !== height) resourceElement.height = height;
+        this._drawVideoFrame(layerIndex);
+      }
       resourceElement.style.width = \`\${renderWidth}px\`;
       resourceElement.style.height = \`\${renderHeight}px\`;
+    }
+    _startVideoDrawLoop() {
+      if (this.videoDrawTimerId || !this.videoElements.some(Boolean)) return;
+      this.videoDrawTimerId = window.setInterval(() => this._drawAllVideoFrames(), VIDEO_DRAW_INTERVAL_MS);
+    }
+    _drawAllVideoFrames() {
+      for (let layerIndex = 0; layerIndex < this.videoElements.length; layerIndex++) {
+        this._drawVideoFrame(layerIndex);
+      }
+    }
+    _drawVideoFrame(layerIndex) {
+      const video = this.videoElements[layerIndex];
+      const resourceElement = this.resourceElements[layerIndex];
+      if (!video || !(resourceElement instanceof HTMLCanvasElement) || video.readyState < 2) return;
+      let context = this.canvasContexts[layerIndex];
+      if (!context) {
+        context = resourceElement.getContext("2d");
+        this.canvasContexts[layerIndex] = context;
+      }
+      if (!context) return;
+      const drawWidth = resourceElement.width || video.videoWidth;
+      const drawHeight = resourceElement.height || video.videoHeight;
+      if (drawWidth <= 0 || drawHeight <= 0) return;
+      try {
+        context.clearRect(0, 0, drawWidth, drawHeight);
+        context.drawImage(video, 0, 0, drawWidth, drawHeight);
+      } catch {
+      }
+    }
+    _startIdmSuppression() {
+      if (this.idmObserver || !document.body) return;
+      this._hideIdmPanelsNearBanner();
+      this.idmObserver = new MutationObserver(() => this._scheduleIdmScan());
+      this.idmObserver.observe(document.body, { childList: true, subtree: true });
+    }
+    _stopIdmSuppression() {
+      var _a3;
+      (_a3 = this.idmObserver) == null ? void 0 : _a3.disconnect();
+      this.idmObserver = null;
+      if (this.idmScanFrameId) {
+        cancelAnimationFrame(this.idmScanFrameId);
+        this.idmScanFrameId = 0;
+      }
+    }
+    _scheduleIdmScan() {
+      if (this.idmScanFrameId) return;
+      this.idmScanFrameId = requestAnimationFrame(() => {
+        this.idmScanFrameId = 0;
+        this._hideIdmPanelsNearBanner();
+      });
+    }
+    _hideIdmPanelsNearBanner() {
+      if (!this.container || !document.body) return;
+      const bannerRect = this.container.getBoundingClientRect();
+      if (bannerRect.width <= 0 || bannerRect.height <= 0) return;
+      const candidates = document.body.querySelectorAll(
+        '[id*="idm"],[id*="IDM"],[class*="idm"],[class*="IDM"],[title*="IDM"],[title*="Download this video"],[title*="download this video"],[aria-label*="IDM"],[aria-label*="Download this video"],[aria-label*="download this video"],iframe[src*="idm"],iframe[src*="IDM"],iframe[src*="idman"]'
+      );
+      candidates.forEach((candidate) => {
+        if (!this._looksLikeIdmPanel(candidate)) return;
+        const rect = candidate.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0) return;
+        const overlapsBanner = rect.right > bannerRect.left && rect.left < bannerRect.right && rect.bottom > bannerRect.top && rect.top < bannerRect.bottom;
+        if (!overlapsBanner) return;
+        candidate.style.setProperty("display", "none", "important");
+        candidate.style.setProperty("visibility", "hidden", "important");
+        candidate.style.setProperty("opacity", "0", "important");
+      });
+    }
+    _looksLikeIdmPanel(candidate) {
+      var _a3, _b2, _c, _d;
+      if ((_a3 = this.container) == null ? void 0 : _a3.contains(candidate)) return false;
+      const markerSource = \`\${candidate.id} \${candidate.className} \${(_b2 = candidate.getAttribute("aria-label")) != null ? _b2 : ""} \${(_c = candidate.title) != null ? _c : ""}\`.toLowerCase();
+      if (markerSource.includes("idm")) return true;
+      const text = ((_d = candidate.textContent) != null ? _d : "").trim().toLowerCase();
+      if (!text) return false;
+      return text.includes("download this video") || text.includes("download with idm");
     }
     _applyAllResourceDimensions() {
       for (let layerIndex = 0; layerIndex < this.resourceElements.length; layerIndex++) {
@@ -24502,7 +24612,8 @@ const MODULES = `
                         justify-content: center;
                     }
                     .dynamic-banner-wrapper .layer img,
-                    .dynamic-banner-wrapper .layer video {
+                    .dynamic-banner-wrapper .layer video,
+                    .dynamic-banner-wrapper .layer canvas {
                         user-select: none;
                         pointer-events: none;
                         -webkit-user-drag: none;
@@ -24692,11 +24803,17 @@ const MODULES = `
       vm.apiHandler = function(t, e) {
         const result = originalApiHandler(t, e);
         owner.syncDynamicSplit(vm, t);
-        if (!owner.isArticleDynamicVm(vm)) {
-          _Header.fetchEntrance().then(() => owner.syncDynamicSplit(vm, void 0));
-        }
         return result;
       };
+      if (!owner.isArticleDynamicVm(vm) && !vm.apiHandler.__fixed__) {
+        vm.apiHandler.__fixed__ = true;
+        setTimeout(() => {
+          vm.firstTime = false;
+          if (typeof vm.loadVideoDataNew === "function") {
+            vm.loadVideoDataNew();
+          }
+        }, 100);
+      }
       vm.apiHandler.__patched__ = true;
     }
     syncDynamicSplit(vm, response) {
