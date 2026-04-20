@@ -427,13 +427,18 @@ export class Header {
         vm.apiHandler = function(t: any, e?: any) {
             const result = originalApiHandler(t, e);
             owner.syncDynamicSplit(vm, t);
-
-            if (!owner.isArticleDynamicVm(vm)) {
-                // 视频首次进入常发生 entrance 晚于 apiHandler，补一次同步
-                Header.fetchEntrance().then(() => owner.syncDynamicSplit(vm, undefined));
-            }
             return result;
         };
+
+        if (!owner.isArticleDynamicVm(vm) && !(vm.apiHandler as any).__fixed__) {
+            (vm.apiHandler as any).__fixed__ = true;
+            setTimeout(() => {
+                vm.firstTime = false;
+                if (typeof vm.loadVideoDataNew === 'function') {
+                    vm.loadVideoDataNew();
+                }
+            }, 100);
+        }
 
         (vm.apiHandler as any).__patched__ = true;
     }
