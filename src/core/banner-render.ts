@@ -203,16 +203,23 @@ interface ResourceMetrics {
   intrinsicHeight: number;
 }
 
-type ResourceElement = HTMLImageElement | HTMLVideoElement;
+type ResourceElement = HTMLImageElement | HTMLCanvasElement;
+
+const VIDEO_DRAW_INTERVAL_MS = 30.3;
 
 export class DynamicBannerRenderer {
   private container: HTMLElement | null = null;
   private layers: LayersV2[] = [];
   private layerElements: HTMLElement[] = [];
   private resourceElements: ResourceElement[] = [];
+  private videoElements: Array<HTMLVideoElement | null> = [];
+  private canvasContexts: Array<CanvasRenderingContext2D | null> = [];
   private layerSnapshots: LayerSnapshot[] = [];
   private resourceMetrics: ResourceMetrics[] = [];
   private layerCurves: LayerCurves[] = [];
+  private videoDrawTimerId = 0;
+  private idmObserver: MutationObserver | null = null;
+  private idmScanFrameId = 0;
 
   private normalizedDisplacementX = 0;
   private pointerAnchorClientX = 0;
@@ -249,6 +256,7 @@ export class DynamicBannerRenderer {
 
     this._buildSnapshots();
     this._buildDOM();
+    this._startIdmSuppression();
 
     this.container.addEventListener('mouseenter', this._boundMouseEnter);
     this.container.addEventListener('mousemove', this._boundMouseMove);
@@ -266,13 +274,17 @@ export class DynamicBannerRenderer {
     window.removeEventListener('resize', this._boundResize);
     window.removeEventListener('blur', this._boundBlur);
     cancelAnimationFrame(this.animationFrameId);
+    if (this.videoDrawTimerId) {
+      window.clearInterval(this.videoDrawTimerId);
+      this.videoDrawTimerId = 0;
+    }
+    this._stopIdmSuppression();
 
-    this.resourceElements.forEach(el => {
-      if (el instanceof HTMLVideoElement) {
-        el.pause();
-        el.src = '';
-        el.load();
-      }
+    this.videoElements.forEach(video => {
+      if (!video) return;
+      video.pause();
+      video.src = '';
+      video.load();
     });
 
     if (this.container) {
@@ -284,6 +296,8 @@ export class DynamicBannerRenderer {
     this.layers = [];
     this.layerElements = [];
     this.resourceElements = [];
+    this.videoElements = [];
+    this.canvasContexts = [];
     this.layerSnapshots = [];
     this.resourceMetrics = [];
     this.layerCurves = [];
@@ -330,6 +344,8 @@ export class DynamicBannerRenderer {
 
     this.layerElements = [];
     this.resourceElements = [];
+    this.videoElements = this.layers.map(() => null);
+    this.canvasContexts = this.layers.map(() => null);
     const fragment = document.createDocumentFragment();
 
     for (let layerIndex = 0; layerIndex < this.layers.length; layerIndex++) {
@@ -348,17 +364,26 @@ export class DynamicBannerRenderer {
     }
 
     wrapper.appendChild(fragment);
+    this._startVideoDrawLoop();
     this._scheduleRender(true);
   }
 
   private _createResourceElement(src: string, layerIndex: number): ResourceElement {
     if (/\.(webm|mp4)$/i.test(src)) {
+      const canvas = document.createElement('canvas');
+      this.canvasContexts[layerIndex] = canvas.getContext('2d');
+
       const video = document.createElement('video');
       video.src = src;
       video.muted = true;
       video.loop = true;
       video.playsInline = true;
       video.autoplay = true;
+      video.preload = 'auto';
+      video.controls = false;
+      video.disablePictureInPicture = true;
+      video.setAttribute('x-webkit-airplay', 'deny');
+      video.setAttribute('aria-hidden', 'true');
       const ensurePlay = () => {
         if (video.paused) {
           video.play().catch(() => { });
@@ -366,11 +391,13 @@ export class DynamicBannerRenderer {
       };
       video.addEventListener('loadeddata', ensurePlay, { once: true });
       video.addEventListener('canplay', ensurePlay, { once: true });
+      video.addEventListener('play', () => this._drawVideoFrame(layerIndex));
       video.addEventListener('error', () => {
         console.warn(`[DynamicBannerRenderer] 视频加载失败: ${src}`);
       });
-      this._registerVideoMetrics(video, layerIndex);
-      return video;
+      this.videoElements[layerIndex] = video;
+      this._registerVideoMetrics(video, layerIndex, canvas);
+      return canvas;
     }
 
     const img = document.createElement('img');
@@ -390,9 +417,10 @@ export class DynamicBannerRenderer {
     img.addEventListener('load', syncMetrics, { once: true });
   }
 
-  private _registerVideoMetrics(video: HTMLVideoElement, layerIndex: number): void {
+  private _registerVideoMetrics(video: HTMLVideoElement, layerIndex: number, resourceElement: ResourceElement): void {
     const syncMetrics = () => {
-      this._captureResourceMetrics(layerIndex, video.videoWidth, video.videoHeight, video);
+      this._captureResourceMetrics(layerIndex, video.videoWidth, video.videoHeight, resourceElement);
+      this._drawVideoFrame(layerIndex);
     };
     if (video.readyState >= 1 && video.videoWidth > 0 && video.videoHeight > 0) {
       syncMetrics();
@@ -417,8 +445,113 @@ export class DynamicBannerRenderer {
     const renderWidth = metrics.intrinsicWidth * this.bannerHeightScale * snapshot.initialScale;
     const renderHeight = metrics.intrinsicHeight * this.bannerHeightScale * snapshot.initialScale;
 
+    if (resourceElement instanceof HTMLCanvasElement) {
+      const width = Math.max(1, Math.round(renderWidth));
+      const height = Math.max(1, Math.round(renderHeight));
+      if (resourceElement.width !== width) resourceElement.width = width;
+      if (resourceElement.height !== height) resourceElement.height = height;
+      this._drawVideoFrame(layerIndex);
+    }
+
     resourceElement.style.width = `${renderWidth}px`;
     resourceElement.style.height = `${renderHeight}px`;
+  }
+
+  private _startVideoDrawLoop(): void {
+    if (this.videoDrawTimerId || !this.videoElements.some(Boolean)) return;
+    this.videoDrawTimerId = window.setInterval(() => this._drawAllVideoFrames(), VIDEO_DRAW_INTERVAL_MS);
+  }
+
+  private _drawAllVideoFrames(): void {
+    for (let layerIndex = 0; layerIndex < this.videoElements.length; layerIndex++) {
+      this._drawVideoFrame(layerIndex);
+    }
+  }
+
+  private _drawVideoFrame(layerIndex: number): void {
+    const video = this.videoElements[layerIndex];
+    const resourceElement = this.resourceElements[layerIndex];
+    if (!video || !(resourceElement instanceof HTMLCanvasElement) || video.readyState < 2) return;
+
+    let context = this.canvasContexts[layerIndex];
+    if (!context) {
+      context = resourceElement.getContext('2d');
+      this.canvasContexts[layerIndex] = context;
+    }
+    if (!context) return;
+
+    const drawWidth = resourceElement.width || video.videoWidth;
+    const drawHeight = resourceElement.height || video.videoHeight;
+    if (drawWidth <= 0 || drawHeight <= 0) return;
+
+    try {
+      context.clearRect(0, 0, drawWidth, drawHeight);
+      context.drawImage(video, 0, 0, drawWidth, drawHeight);
+    } catch {
+      // Ignore transient decode/cross-origin draw errors and draw again on next tick.
+    }
+  }
+
+  private _startIdmSuppression(): void {
+    if (this.idmObserver || !document.body) return;
+    this._hideIdmPanelsNearBanner();
+    this.idmObserver = new MutationObserver(() => this._scheduleIdmScan());
+    this.idmObserver.observe(document.body, { childList: true, subtree: true });
+  }
+
+  private _stopIdmSuppression(): void {
+    this.idmObserver?.disconnect();
+    this.idmObserver = null;
+    if (this.idmScanFrameId) {
+      cancelAnimationFrame(this.idmScanFrameId);
+      this.idmScanFrameId = 0;
+    }
+  }
+
+  private _scheduleIdmScan(): void {
+    if (this.idmScanFrameId) return;
+    this.idmScanFrameId = requestAnimationFrame(() => {
+      this.idmScanFrameId = 0;
+      this._hideIdmPanelsNearBanner();
+    });
+  }
+
+  private _hideIdmPanelsNearBanner(): void {
+    if (!this.container || !document.body) return;
+    const bannerRect = this.container.getBoundingClientRect();
+    if (bannerRect.width <= 0 || bannerRect.height <= 0) return;
+
+    const candidates = document.body.querySelectorAll<HTMLElement>(
+      '[id*="idm"],[id*="IDM"],[class*="idm"],[class*="IDM"],[title*="IDM"],[title*="Download this video"],[title*="download this video"],[aria-label*="IDM"],[aria-label*="Download this video"],[aria-label*="download this video"],iframe[src*="idm"],iframe[src*="IDM"],iframe[src*="idman"]'
+    );
+
+    candidates.forEach((candidate) => {
+      if (!this._looksLikeIdmPanel(candidate)) return;
+      const rect = candidate.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return;
+
+      const overlapsBanner = rect.right > bannerRect.left
+        && rect.left < bannerRect.right
+        && rect.bottom > bannerRect.top
+        && rect.top < bannerRect.bottom;
+      if (!overlapsBanner) return;
+
+      candidate.style.setProperty('display', 'none', 'important');
+      candidate.style.setProperty('visibility', 'hidden', 'important');
+      candidate.style.setProperty('opacity', '0', 'important');
+    });
+  }
+
+  private _looksLikeIdmPanel(candidate: HTMLElement): boolean {
+    if (this.container?.contains(candidate)) return false;
+
+    const markerSource = `${candidate.id} ${candidate.className} ${candidate.getAttribute('aria-label') ?? ''} ${candidate.title ?? ''}`.toLowerCase();
+    if (markerSource.includes('idm')) return true;
+
+    const text = (candidate.textContent ?? '').trim().toLowerCase();
+    if (!text) return false;
+    return text.includes('download this video')
+      || text.includes('download with idm');
   }
 
   private _applyAllResourceDimensions(): void {

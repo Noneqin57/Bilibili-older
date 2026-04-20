@@ -209,7 +209,8 @@ export class Header {
                         justify-content: center;
                     }
                     .dynamic-banner-wrapper .layer img,
-                    .dynamic-banner-wrapper .layer video {
+                    .dynamic-banner-wrapper .layer video,
+                    .dynamic-banner-wrapper .layer canvas {
                         user-select: none;
                         pointer-events: none;
                         -webkit-user-drag: none;
