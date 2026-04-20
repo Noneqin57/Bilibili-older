@@ -5,6 +5,7 @@ import { addCss, addElement, loadScript } from "../utils/element";
 import { subArray } from "../utils/format/subarray";
 import { jsonpHook } from "../utils/hook/node";
 import { xhrHook } from "../utils/hook/xhr";
+import { FetchHook } from "../utils/hook/fetch";
 import { poll } from "../utils/poll";
 import indexIcon from "../json/index-icon.json";
 
@@ -13,6 +14,12 @@ import cssMessage from '../css/message.css';
 
 import { DynamicBannerRenderer } from "../core/banner-render";
 import type { BannerConfig } from "../core/banner-render";
+
+const dynamicNewFetchHook = new FetchHook("api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/dynamic_new");
+const iframeJSFetchHook = new FetchHook("/index.");
+function isDynamicNavPage(): boolean {
+    return location.href.includes('t.bilibili.com/pages/nav/index');
+}
 
 export class Header {
     /** locs列表 */
@@ -167,7 +174,6 @@ export class Header {
         try {
             const splitLayer = JSON.parse(header.split_layer);
             if (splitLayer?.version !== '1' || !Array.isArray(splitLayer?.layers)) {
-                console.warn('[Header] 不支持的动态 Banner 格式:', splitLayer?.version);
                 return;
             }
 
@@ -264,12 +270,199 @@ export class Header {
         ) ? false : true;
     }
     constructor() {
+        if (isDynamicNavPage()) {
+            this.injectDynamicNavFix();
+            return;
+        }
         this.oldHeader.className = 'z-top-container has-menu';
         this.hookHeadV2();
         this.feedCount();
         poll(() => document.readyState === 'complete', () => this.styleClear());
     }
-    /** 监听新版顶栏 */
+
+    /** 动态面板API注入 */
+    private dynamicNavObserver: MutationObserver | null = null;
+    private dynamicNavPatchedComponents = new WeakSet<any>();
+
+    protected injectDynamicNavFix() {
+        Header.fetchEntrance();
+
+        xhrHook.async('dynamic_svr/v1/dynamic_svr/dynamic_num', undefined, async () => {
+            try {
+                await Header.fetchEntrance();
+                const count = Header.dynamicNewCounts.video;
+                const response = JSON.stringify({ code: 0, message: 'OK', ttl: 1, data: { new_num: count, update_num: count } });
+                return { response, responseText: response };
+            } catch {
+                const response = '{"code":0,"message":"OK","ttl":1,"data":{"new_num":0,"update_num":0}}';
+                return { response, responseText: response };
+            }
+        }, true);
+
+        this.hookDynamicNewWithNewCount();
+        this.patchApiHandler();
+    }
+
+    protected hookDynamicNewWithNewCount() {
+        const key = '__biliOldDynamicNewHooked__';
+        if ((window as any)[key]) return;
+        (window as any)[key] = true;
+
+        const patchPayload = (payload: any, isArticle: boolean) => {
+            if (!payload?.data?.cards) return false;
+            const serverCount = Number(payload.data.new_count);
+            const safeServerCount = Number.isFinite(serverCount) && serverCount >= 0 ? serverCount : 0;
+            let targetCount = safeServerCount;
+
+            if (isArticle) {
+                // 专栏防污染
+                Header.dynamicNewCounts.article = safeServerCount;
+            } else {
+                targetCount = Header.dynamicNewCounts.video;
+            }
+
+            const limit = Array.isArray(payload.data.cards) ? payload.data.cards.length : 50;
+            const normalized = Math.max(0, Math.min(50, limit, Math.floor(targetCount || 0)));
+            payload.data.new_count = normalized;
+            payload.data.num = normalized;
+            return true;
+        };
+
+        const originalFetch = window.fetch;
+        window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+            const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+            if (!url.includes('dynamic_svr/v1/dynamic_svr/dynamic_new')) {
+                return originalFetch.call(window, input, init);
+            }
+
+            await Header.fetchEntrance();
+            const response = await originalFetch.call(window, input, init);
+            try {
+                const payload = await response.clone().json();
+                const isArticle = url.includes('type_list=64') || url.includes('type_list=%36%34');
+                patchPayload(payload, isArticle);
+                return new Response(JSON.stringify(payload), {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: response.headers,
+                });
+            } catch {
+                return response;
+            }
+        };
+
+        const owner = this;
+        const originalOpen = XMLHttpRequest.prototype.open;
+        const originalSend = XMLHttpRequest.prototype.send;
+
+        XMLHttpRequest.prototype.open = function(method: string, url: string | URL, async?: boolean, username?: string | null, password?: string | null) {
+            (this as any).__biliOldUrl = String(url);
+            return originalOpen.call(this, method, url, async ?? true, username ?? null, password ?? null);
+        };
+
+        XMLHttpRequest.prototype.send = function(body?: any) {
+            const url = (this as any).__biliOldUrl as string;
+            if (url?.includes('dynamic_svr/v1/dynamic_svr/dynamic_new')) {
+                this.addEventListener('readystatechange', async function() {
+                    if (this.readyState !== 4 || this.status !== 200) return;
+                    try {
+                        await Header.fetchEntrance();
+                        const payload = JSON.parse(this.responseText);
+                        const isArticle = url.includes('type_list=64') || url.includes('type_list=%36%34');
+                        if (!patchPayload(payload, isArticle)) return;
+                        const content = JSON.stringify(payload);
+                        Object.defineProperty(this, 'responseText', { configurable: true, value: content });
+                        Object.defineProperty(this, 'response', { configurable: true, value: content });
+                        setTimeout(() => owner.patchApiHandler(), 0);
+                    } catch (error) {
+                        console.error('[Bilibili-Old] XHR hook error:', error);
+                    }
+                });
+            }
+            return originalSend.call(this, body);
+        };
+    }
+
+    protected patchApiHandler() {
+        const patchVm = (vm: any) => {
+            if (!vm) return;
+
+            if (typeof vm.apiHandler === 'function' && !this.dynamicNavPatchedComponents.has(vm)) {
+                this.patchComponentApiHandler(vm);
+                this.dynamicNavPatchedComponents.add(vm);
+            }
+
+            if (Array.isArray(vm.$children)) {
+                vm.$children.forEach((child: any) => patchVm(child));
+            }
+        };
+
+        document.querySelectorAll('.dyn_list_wrapper').forEach((wrapper) => {
+            patchVm((wrapper as any).__vue__);
+        });
+
+        ['#app-container', '#app', '#root', 'body'].forEach((selector) => {
+            const vm = (document.querySelector(selector) as any)?.__vue__;
+            patchVm(vm);
+        });
+
+        if (!this.dynamicNavObserver) {
+            this.dynamicNavObserver = new MutationObserver((mutations) => {
+                for (const mutation of mutations) {
+                    for (const node of mutation.addedNodes) {
+                        if (!(node instanceof Element)) continue;
+                        const wrapper = node.classList.contains('dyn_list_wrapper') ? node : node.querySelector('.dyn_list_wrapper');
+                        if (wrapper) patchVm((wrapper as any).__vue__);
+                    }
+                }
+            });
+            this.dynamicNavObserver.observe(document.body, { childList: true, subtree: true });
+        }
+    }
+
+    protected patchComponentApiHandler(vm: any) {
+        const owner = this;
+        const originalApiHandler = vm.apiHandler.bind(vm);
+
+        vm.apiHandler = function(t: any, e?: any) {
+            const result = originalApiHandler(t, e);
+            owner.syncDynamicSplit(vm, t);
+
+            if (!owner.isArticleDynamicVm(vm)) {
+                // 视频首次进入常发生 entrance 晚于 apiHandler，补一次同步
+                Header.fetchEntrance().then(() => owner.syncDynamicSplit(vm, undefined));
+            }
+            return result;
+        };
+
+        (vm.apiHandler as any).__patched__ = true;
+    }
+
+    protected syncDynamicSplit(vm: any, response: any) {
+        if (!Array.isArray(vm?.list)) return;
+        const fromResponse = Number(response?.data?.new_count);
+        const fromVm = Number(vm?.newCount);
+        const fallbackCount = this.getDynamicFallbackCount(vm);
+        const rawCount = Number.isFinite(fromResponse) && fromResponse >= 0
+            ? fromResponse
+            : (Number.isFinite(fromVm) && fromVm >= 0 ? fromVm : fallbackCount);
+        if (!Number.isFinite(rawCount)) return;
+
+        const count = Math.max(0, Math.min(50, vm.list.length, Math.floor(rawCount)));
+        vm.newCount = count;
+        vm.firstTime = false;
+        vm.newList = vm.list.slice(0, count);
+        vm.historyList = vm.list.slice(count, 50);
+    }
+
+    protected getDynamicFallbackCount(vm: any): number {
+        return this.isArticleDynamicVm(vm) ? 0 : Header.dynamicNewCounts.video;
+    }
+
+    protected isArticleDynamicVm(vm: any): boolean {
+        return typeof vm?.loadArticleDataNew === 'function';
+    }
+
     protected hookHeadV2() {
         poll(() => {
             return document.querySelector<HTMLElement>('#internationalHeader')
@@ -342,8 +535,24 @@ export class Header {
         }
         Header.styleFix();
     }
+    /** 缓存 entrance 数据 */
+    static dynamicNewCounts: Record<string, number> = { video: 0, article: 0, live: 0 };
+    static entrancePromise: Promise<void> | null = null;
+    /** 预调 entrance API */
+    static fetchEntrance(): Promise<void> {
+        if (Header.entrancePromise) return Header.entrancePromise;
+        Header.entrancePromise = fetch("https://api.bilibili.com/x/web-interface/dynamic/entrance?alltype_offset=0&video_offset=0&article_offset=0&web_location=333.1007", { credentials: "include" })
+            .then(r => r.json())
+            .then(json => {
+                const newCount = json?.data?.update_info?.item?.count ?? 0;
+                Header.dynamicNewCounts.video = Math.max(Header.dynamicNewCounts.video, newCount);
+            }).catch(() => { Header.entrancePromise = null; });
+        return Header.entrancePromise;
+    }
+
     /** 顶栏动态直播回复数目接口失效，强制标记为0 */
     protected feedCount() {
+        Header.fetchEntrance();
         xhrHook.async('api.live.bilibili.com/ajax/feed/count', undefined, async () => {
             const response = '{ "code": 0, "data": { "count": 0 }, "message": "0" }';
             return { response, responseText: response }
@@ -369,5 +578,51 @@ export class Header {
                 return { response, responseText: response };
             }
         }, true);
+
+        this.hookIframeJS();
+        this.hookDynamicNew();
     }
+    /** 修复动态面板历史分割线 */
+    protected hookIframeJS() {
+        // 使用提前初始化的 FetchHook 拦截 JS 文件
+        iframeJSFetchHook.response(async (res) => {
+            try {
+                let js = await res.text();
+                if (!js) return;
+                const originalPattern = /void 0 === this\.firstTime \|\| !0 === this\.firstTime \|\| I \? \(this\.newList = this\.list\.slice\(0, 50\), this\.historyList = \[\]\) : \(this\.newList = this\.list\.slice\(0, 50\)\.slice\(0, this\.newCount \|\| 0\)\.slice\(0, 50\), this\.historyList = this\.list\.slice\(this\.newCount \|\| 0\)\.slice\(0, 50 - this\.newList\.length\)\)/;
+                if (originalPattern.test(js)) {
+                    const replacement = 'var _newCount = (t && t.data && t.data.new_count) || this.newCount || 0; this.newList = this.list.slice(0, 50).slice(0, _newCount).slice(0, 50), this.historyList = this.list.slice(_newCount).slice(0, 50 - this.newList.length)';
+                    js = js.replace(originalPattern, replacement);
+                    return js;
+                }
+            } catch (e) {
+                console.error('[Bilibili-Old] Failed to patch iframe JS:', e);
+            }
+        });
+    }
+
+    protected hookDynamicNew() {
+        // 使用提前初始化的 FetchHook 设置响应拦截
+        dynamicNewFetchHook.response(async (res) => {
+            const url = res.url;
+            const isArticle = url.includes("type_list=64") || url.includes("type_list=%36%34");
+
+            // 等待 entrance 数据就绪
+            await Header.fetchEntrance();
+
+            const response = await res.json();
+
+            if (response?.data?.cards) {
+                const apiCount = Number(response.data.new_count);
+                const safeApiCount = Number.isFinite(apiCount) && apiCount >= 0 ? apiCount : 0;
+                const newCount = isArticle ? safeApiCount : Header.dynamicNewCounts.video;
+                if (isArticle) Header.dynamicNewCounts.article = safeApiCount;
+                response.data.new_count = newCount;
+                response.data.num = newCount;
+            }
+
+            return JSON.stringify(response);
+        });
+    }
+
 }
