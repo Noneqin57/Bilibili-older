@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili 旧播放页
 // @namespace    MotooriKashin
-// @version      10.11.9-d5f69894f3ebad84f70d35a5f9aaf5cd6563f966
+// @version      10.12.0-df9d4596601ff44eb57c91478414d53966444434
 // @description  恢复Bilibili旧版页面，为了那些念旧的人。
 // @author       MotooriKashin, wly5556, FMPeach
 // @homepage     https://github.com/FMPeach/Bilibili-Old
@@ -8929,7 +8929,7 @@ const MODULES = `
       }
     }
   };
-  customElements.get(\`toast-\${"d5f6989"}\`) || customElements.define(\`toast-\${"d5f6989"}\`, Toast, { extends: "div" });
+  customElements.get(\`toast-\${"df9d459"}\`) || customElements.define(\`toast-\${"df9d459"}\`, Toast, { extends: "div" });
   var ToastContainer = class extends HTMLElement {
     /** 实际根节点 */
     container;
@@ -9056,7 +9056,7 @@ const MODULES = `
       }
     }
   };
-  customElements.get(\`toast-container-\${"d5f6989"}\`) || customElements.define(\`toast-container-\${"d5f6989"}\`, ToastContainer);
+  customElements.get(\`toast-container-\${"df9d459"}\`) || customElements.define(\`toast-container-\${"df9d459"}\`, ToastContainer);
   var toast = new ToastContainer();
 
   // src/core/user.ts
@@ -9129,7 +9129,7 @@ const MODULES = `
       }
     }
   };
-  customElements.get("biliold-entry-d5f6989") || customElements.define("bilibili-entry-d5f6989", BilioldEntry);
+  customElements.get("biliold-entry-df9d459") || customElements.define("bilibili-entry-df9d459", BilioldEntry);
 
   // src/core/userstatus.ts
   var userStatus = {
@@ -9412,7 +9412,7 @@ const MODULES = `
       this._button.textContent = v;
     }
   };
-  customElements.get(\`button-\${"d5f6989"}\`) || customElements.define(\`button-\${"d5f6989"}\`, PushButton);
+  customElements.get(\`button-\${"df9d459"}\`) || customElements.define(\`button-\${"df9d459"}\`, PushButton);
 
   // src/core/ui/utils/popupbox.ts
   init_tampermonkey();
@@ -9515,7 +9515,7 @@ const MODULES = `
       }
     }
   };
-  customElements.get(\`popupbox-\${"d5f6989"}\`) || customElements.define(\`popupbox-\${"d5f6989"}\`, PopupBox);
+  customElements.get(\`popupbox-\${"df9d459"}\`) || customElements.define(\`popupbox-\${"df9d459"}\`, PopupBox);
 
   // src/core/ui/alert.ts
   function alert(msg, title, buttons, fork = false) {
@@ -13526,7 +13526,7 @@ const MODULES = `
       this._container.replaceChildren(this._noData);
     }
   };
-  customElements.get(\`download-\${"d5f6989"}\`) || customElements.define(\`download-\${"d5f6989"}\`, BilioldDownload);
+  customElements.get(\`download-\${"df9d459"}\`) || customElements.define(\`download-\${"df9d459"}\`, BilioldDownload);
 
   // src/core/ui/preview-image.ts
   init_tampermonkey();
@@ -13758,7 +13758,7 @@ const MODULES = `
       document.body.style.overflow = "hidden";
     }
   };
-  customElements.get(\`preview-image-\${"d5f6989"}\`) || customElements.define(\`preview-image-\${"d5f6989"}\`, PreviewImage);
+  customElements.get(\`preview-image-\${"df9d459"}\`) || customElements.define(\`preview-image-\${"df9d459"}\`, PreviewImage);
 
   // src/core/videolimit.ts
   init_tampermonkey();
@@ -30613,7 +30613,7 @@ const MODULES = `
           debug.error("获取点赞情况失败", e);
         });
       }
-      addCss(".ulike {cursor: pointer;}.ulike svg{vertical-align: middle;margin-right: 10px;transform: translateY(-1px);}", \`ulike\${"d5f6989"}\`);
+      addCss(".ulike {cursor: pointer;}.ulike svg{vertical-align: middle;margin-right: 10px;transform: translateY(-1px);}", \`ulike\${"df9d459"}\`);
     }
     /** 更新点赞数 */
     get likes() {
@@ -30631,7 +30631,7 @@ const MODULES = `
       this.innerHTML = (this.liked ? like_default : dislike_default) + "点赞 " + unitFormat(this.number);
     }
   };
-  customElements.get(\`like-\${"d5f6989"}\`) || customElements.define(\`like-\${"d5f6989"}\`, Like, { extends: "span" });
+  customElements.get(\`like-\${"df9d459"}\`) || customElements.define(\`like-\${"df9d459"}\`, Like, { extends: "span" });
 
   // src/css/uplist.css
   var uplist_default = ".up-info-m .up-card-box {\\r\\n    white-space: nowrap;\\r\\n    overflow: auto;\\r\\n}\\r\\n\\r\\n.up-info-m .up-card {\\r\\n    display: inline-block;\\r\\n    margin-top: 10px;\\r\\n}\\r\\n\\r\\n.up-info-m .avatar img {\\r\\n    cursor: pointer;\\r\\n    width: 40px;\\r\\n    height: 40px;\\r\\n    border-radius: 50%;\\r\\n}\\r\\n\\r\\n.up-info-m .avatar {\\r\\n    position: relative;\\r\\n}\\r\\n\\r\\n.up-info-m .avatar .info-tag {\\r\\n    position: absolute;\\r\\n    background: #fff;\\r\\n    border: 1px solid #fb7299;\\r\\n    border-radius: 2px;\\r\\n    display: inline-block;\\r\\n    font-size: 12px;\\r\\n    color: #fb7299;\\r\\n    padding: 0 3px;\\r\\n    top: -10px;\\r\\n    right: -10px;\\r\\n    white-space: nowrap;\\r\\n}\\r\\n\\r\\n.up-info-m .avatar {\\r\\n    width: 60px;\\r\\n    height: 30px;\\r\\n    display: -ms-flexbox;\\r\\n    display: flex;\\r\\n    -ms-flex-pack: center;\\r\\n    justify-content: center;\\r\\n    -ms-flex-align: start;\\r\\n    align-items: flex-start;\\r\\n}\\r\\n\\r\\n.up-info-m .avatar .name-text {\\r\\n    font-family: PingFangSC-Regular, sans-serif;\\r\\n    line-height: 30px;\\r\\n    color: #222;\\r\\n    word-break: break-all;\\r\\n    overflow: hidden;\\r\\n    text-overflow: ellipsis;\\r\\n    display: -webkit-box;\\r\\n    -webkit-line-clamp: 2;\\r\\n    -webkit-box-orient: vertical;\\r\\n    white-space: nowrap;\\r\\n}\\r\\n\\r\\n.up-info-m .avatar .name-text.is-vip,\\r\\n.up-info-m .avatar .name-text:hover {\\r\\n    color: #fb7299;\\r\\n}\\r\\n\\r\\n.up-info-m .title {\\r\\n    display: block;\\r\\n    font-size: 14px;\\r\\n    margin-right: 80px;\\r\\n    color: #525659;\\r\\n    overflow: hidden;\\r\\n    height: 24px;\\r\\n    font-weight: 400;\\r\\n    padding: 8px 0;\\r\\n}";
@@ -41074,7 +41074,7 @@ const MODULES = `
       }
     }
   };
-  customElements.get(\`desc-\${"d5f6989"}\`) || customElements.define(\`desc-\${"d5f6989"}\`, Desc);
+  customElements.get(\`desc-\${"df9d459"}\`) || customElements.define(\`desc-\${"df9d459"}\`, Desc);
 
   // src/core/ui/interface.ts
   init_tampermonkey();
@@ -41152,7 +41152,7 @@ const MODULES = `
       this._value.appendChild(value);
     }
   };
-  customElements.get(\`item-\${"d5f6989"}\`) || customElements.define(\`item-\${"d5f6989"}\`, SettingItem, { extends: "div" });
+  customElements.get(\`item-\${"df9d459"}\`) || customElements.define(\`item-\${"df9d459"}\`, SettingItem, { extends: "div" });
 
   // src/core/ui/menu.ts
   init_tampermonkey();
@@ -41186,7 +41186,7 @@ const MODULES = `
       this._card.append(...item);
     }
   };
-  customElements.get(\`item-container-\${"d5f6989"}\`) || customElements.define(\`item-container-\${"d5f6989"}\`, ItemContainer, { extends: "div" });
+  customElements.get(\`item-container-\${"df9d459"}\`) || customElements.define(\`item-container-\${"df9d459"}\`, ItemContainer, { extends: "div" });
 
   // src/core/ui/menu.ts
   var Menuitem = class extends HTMLDivElement {
@@ -41246,7 +41246,7 @@ const MODULES = `
       return this.container;
     }
   };
-  customElements.get(\`menuitem-\${"d5f6989"}\`) || customElements.define(\`menuitem-\${"d5f6989"}\`, Menuitem, { extends: "div" });
+  customElements.get(\`menuitem-\${"df9d459"}\`) || customElements.define(\`menuitem-\${"df9d459"}\`, Menuitem, { extends: "div" });
 
   // src/core/ui/utils/checkbox.ts
   init_tampermonkey();
@@ -41335,7 +41335,7 @@ const MODULES = `
       Object.entries(value).forEach((d) => this[d[0]] = d[1]);
     }
   };
-  customElements.get(\`checkbox-\${"d5f6989"}\`) || customElements.define(\`checkbox-\${"d5f6989"}\`, CheckBox);
+  customElements.get(\`checkbox-\${"df9d459"}\`) || customElements.define(\`checkbox-\${"df9d459"}\`, CheckBox);
   var CheckBoxs = class extends HTMLDivElement {
     \$value = [];
     checkboxs = {};
@@ -41386,7 +41386,7 @@ const MODULES = `
       });
     }
   };
-  customElements.get(\`checkboxs-\${"d5f6989"}\`) || customElements.define(\`checkboxs-\${"d5f6989"}\`, CheckBoxs, { extends: "div" });
+  customElements.get(\`checkboxs-\${"df9d459"}\`) || customElements.define(\`checkboxs-\${"df9d459"}\`, CheckBoxs, { extends: "div" });
 
   // src/core/ui/utils/input.ts
   init_tampermonkey();
@@ -41462,7 +41462,7 @@ const MODULES = `
       Object.entries(value).forEach((d) => this[d[0]] = d[1]);
     }
   };
-  customElements.get(\`input-\${"d5f6989"}\`) || customElements.define(\`input-\${"d5f6989"}\`, InputArea);
+  customElements.get(\`input-\${"df9d459"}\`) || customElements.define(\`input-\${"df9d459"}\`, InputArea);
 
   // src/core/ui/utils/select.ts
   init_tampermonkey();
@@ -41529,7 +41529,7 @@ const MODULES = `
       Object.entries(value).forEach((d) => this[d[0]] = d[1]);
     }
   };
-  customElements.get(\`select-\${"d5f6989"}\`) || customElements.define(\`select-\${"d5f6989"}\`, SelectMenu);
+  customElements.get(\`select-\${"df9d459"}\`) || customElements.define(\`select-\${"df9d459"}\`, SelectMenu);
 
   // src/core/ui/utils/slider.ts
   init_tampermonkey();
@@ -41693,7 +41693,7 @@ const MODULES = `
       Object.entries(value).forEach((d) => this[d[0]] = d[1]);
     }
   };
-  customElements.get(\`slider-\${"d5f6989"}\`) || customElements.define(\`slider-\${"d5f6989"}\`, SliderBlock);
+  customElements.get(\`slider-\${"df9d459"}\`) || customElements.define(\`slider-\${"df9d459"}\`, SliderBlock);
 
   // src/core/ui/utils/switch.ts
   init_tampermonkey();
@@ -41742,7 +41742,7 @@ const MODULES = `
       return this;
     }
   };
-  customElements.get(\`switch-\${"d5f6989"}\`) || customElements.define(\`switch-\${"d5f6989"}\`, SwitchButton);
+  customElements.get(\`switch-\${"df9d459"}\`) || customElements.define(\`switch-\${"df9d459"}\`, SwitchButton);
 
   // src/core/ui.ts
   var Menus = {
